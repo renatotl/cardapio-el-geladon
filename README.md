@@ -481,3 +481,575 @@ https://drive.google.com/file/d/1Go6j2Jx-eZa5bGmLUObRn1QTGFQne2Qf/view?usp=shari
 Lista criada, hora de renderizar na tela.
 
 
+Antes de continuarmos, seria interessante adicionarmos um arquivo de configuração chamado jsconfig.json. Nele podemos adicionar a opção de import absoluto, que nos permite fazer o import de arquivos e pastas que estarão a partir da pasta raiz escolhida como base, neste caso a src, sem a necessidade de realizar confusos imports com múltiplos pontos de retorno no diretório de arquivos.
+
+
+Crie na raiz do projeto o arquivo jsconfig.json e adicione as seguintes linhas:
+
+{
+  "compilerOptions": {
+    "baseUrl": "src"
+  },
+  "include": ["src"]
+}
+
+a past src esá sendo incluímo como raís do pj
+
+Agora podemos dar sequência com a leitura da lista. Para organizar melhor e semanticamente quanto a responsabilidade e reutilização de cada componente, separaremos em um novo arquivo chamado PaletaLista.jsx na pasta src:
+
+
+function PaletaLista() {
+  return <div className="PaletaLista">Este é o componente PaletaLista</div>;
+}
+
+export default PaletaLista;
+
+Após a criação do arquivo devemos importá-lo no componente Home.jsx e substituir a frase pela implementação do componente de lista dentro de um container:
+
+
+import "./Home.css";
+import PaletaLista from "PaletaLista";
+
+function Home() {
+  return (
+    <div className="Home">
+      <div className="Home__container">
+        <PaletaLista />
+      </div>
+    </div>
+  );
+}
+
+export default Home;
+
+Caso dê algum erro de execução, dê um Ctrl+C no terminal de execução do projeto e execute novamente o npm start. Tal erro pode ocorrer devido à nova definição do jsconfig.json que antes da criação não havia sido criado, e mesmo após a criação as definições padrão ainda estavam em execução em cache.
+
+
+Adicionaremos ao nosso componente PaletaLista.jsx a estrutura HTML para renderizar um item da lista com dados estáticos.
+
+
+function PaletaLista() {
+  return (
+    <div className="PaletaLista">
+      <div className="PaletaListaItem">
+        <div>
+          <div className="PaletaListaItem__titulo">
+            {" "}
+            Doce de Leite com Doce de Leite{" "}
+          </div>
+          <div className="PaletaListaItem__preco">R$ 10,00</div>
+          <div className="PaletaListaItem__descricao">
+            {" "}
+            Quam vulputate dignissim suspendisse in est ante in nibh mauris.{" "}
+          </div>
+          <div className="PaletaListaItem__acoes Acoes">
+            <button className="Acoes__adicionar Acoes__adicionar--preencher">
+              adicionar
+            </button>
+          </div>
+        </div>
+        <img
+          className="PaletaListaItem__foto"
+          src={require("assets/images/doce-de-leite-com-doce-de-leite.png")}
+          alt="Paleta de Doce de Leite"
+        />
+      </div>
+    </div>
+  );
+}
+
+export default PaletaLista;
+
+
+Não está aparentemente agradável, vamos adicionar o estilo ao container em Home.css:
+
+/* ... */
+/* NOVO TRECHO */
+.Home__container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 350px) {
+  .Home__container {
+    justify-content: unset;
+  }
+}
+
+
+Ainda é necessário estilizar o item da lista antes de prosseguirmos. Crie o arquivo PaletaLista.css dentro de src:
+
+
+.PaletaLista {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 25px 50px;
+}
+
+@media (max-width: 1220px) {
+  .PaletaLista {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 840px) {
+  .PaletaLista {
+    grid-template-columns: 1fr;
+  }
+}
+
+.PaletaListaItem {
+  font-family: "Exo";
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+  width: 315px;
+  display: flex;
+  justify-content: space-around;
+}
+
+@media (max-width: 400px) {
+  .PaletaListaItem {
+    width: 210px;
+    height: 180px;
+  }
+}
+
+.PaletaListaItem > div {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
+.PaletaListaItem__titulo {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 100%;
+}
+
+.PaletaListaItem__descricao {
+  font-size: 0.85em;
+}
+
+.PaletaListaItem__preco {
+  color: darkviolet;
+}
+
+.Acoes {
+  display: flex;
+  justify-content: space-between;
+}
+
+.Acoes__adicionar,
+.Acoes__remover {
+  border: none;
+  color: white;
+  border-radius: 5px;
+  font-family: "Exo", sans-serif;
+  padding: 5px;
+  max-width: 280px;
+  text-align: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  width: 48%;
+}
+
+.Acoes__remover {
+  background-color: red;
+}
+
+.Acoes__adicionar {
+  background-color: darkviolet;
+}
+
+.Acoes__adicionar--preencher {
+  width: 100%;
+}
+
+.PaletaListaItem__foto {
+  height: 150px;
+  margin-right: -60px;
+}
+
+E Assim como fizemos nos componentes anteriores, importaremos esse estilo dentro de PaletaLista.js
+
+import "PaletaLista.css";
+
+/* ... */
+
+Bom, para começarmos a renderizar a listafaremosnte, vamos fazer o import da lista paletas.js no componente PaletaLista.jsx:
+
+import "PaletaLista.css"
+import { paletas } from "mocks/paletas.js";
+
+/* ... */
+
+
+Logo em seguida devemos realizar a substituição dos dados estáticos pelos da lista. Para que cada objeto seja retratado como um item na tela, devemos iterar a lista, ou seja, executar laços de repetição* até que todos os objetos sejam exibidos.
+
+Laços de repetição, também conhecidos como loops, são comandos que permitem iteração de código, ou seja, que comandos presentes no bloco sejam repetidos diversas vezes.
+
+No React exibimos uma coleção de dados utilizando map*, método nativo do JS. Para isso devemos inseri-lo entre chaves {} dentro do JSX.
+
+O método map invoca a função callback passada por argumento para cada elemento do Array e devolve um novo Array como resultado.
+
+Callback é uma rotina/função que é passada como parâmetro para outro método.
+
+Dito isto, podemos prosseguir com a implementação do método map no arquivo PaletaLista.jsx:
+
+/* ... */
+
+/* NOVO TRECHO */
+<div className="PaletaLista">
+    {paletas.map((paleta, index) => (
+    <div className="PaletaListaItem">
+        <div>
+        <div className="PaletaListaItem__titulo">
+            {" "}
+            Doce de Leite com Doce de Leite{" "}
+        </div>
+        <div className="PaletaListaItem__preco">R$ 10,00</div>
+        <div className="PaletaListaItem__descricao">
+            {" "}
+            Quam vulputate dignissim suspendisse in est ante in nibh mauris.{" "}
+        </div>
+        <div className="PaletaListaItem__acoes Acoes">
+            <button className="Acoes__adicionar Acoes__adicionar--preencher">
+            adicionar
+            </button>
+        </div>
+        </div>
+        <img
+        className="PaletaListaItem__foto"
+        src={require("assets/images/doce-de-leite-com-doce-de-leite.png")}
+        alt="Paleta de Doce de Leite"
+        />
+    </div>
+    ))}
+</div>
+/* FIM NOVO TRECHO */
+
+/* ... */
+
+
+Observe que agora aparece o número de objetos existentes na lista, porém todos iguais à estrutura inicial e queremos que sejam renderizados dinamicamente.
+
+
+Para isso, devemos realizar a substituição dos dados por {variavelComDados}, contendo os dados de cada objeto para exibirmos em tela, da seguinte forma:
+
+
+/* ... */
+
+/* NOVO TRECHO */
+<div className="PaletaLista">
+    {paletas.map((paleta, index) => (
+    <div className="PaletaListaItem">
+        <div>
+        <div className="PaletaListaItem__titulo"> {paleta.titulo} </div>
+        <div className="PaletaListaItem__preco">
+            {" "}
+            R$ {paleta.preco.toFixed(2)}{" "}
+        </div>
+        <div className="PaletaListaItem__descricao">
+            {" "}
+            {paleta.descricao}{" "}
+        </div>
+        <div className="PaletaListaItem__acoes Acoes">
+            <button className="Acoes__adicionar Acoes__adicionar--preencher">
+            adicionar
+            </button>
+        </div>
+        </div>
+        <img
+        className="PaletaListaItem__foto"
+        src={paleta.foto}
+        alt={`Paleta de ${paleta.sabor}`}
+        />
+    </div>
+    ))}
+</div>
+/* FIM NOVO TRECHO */
+
+/* ... */
+
+Mas antes de comemorar, como dizem as boas práticas, é interessante sempre visualizar as saídas no console, clicando nas três bolinhas de opções do navegador > Mais ferramentas > Ferramentas do desenvolvedor.
+
+Será possível notar um Warning em vermelho, como aviso do próprio React de que ao criar uma Será possível notar um Warning em vermelho, como aviso do próprio React de que ao criar uma lista na UI (User Interface ou Interface de Usuário) a partir de um array com JSX, você deve adicionar uma propriedade key para cada filho e qualquer um de seus filhos na árvore de elementos.
+
+O React usa a propriedade key para criar um relacionamento entre o componente e o elemento DOM. Se o atributo key não for adusaremos React ficará confuso e renderizará novamente o elemento incorreto.
+
+Visto isso, vamos usar o index da lista seguido do nome da classe que demos a estrutura para criar uma chave única:
+
+
+/* ... */
+{paletas.map((paleta, index) => (
+  <div className="PaletaListaItem" key={`PaletaListaItem-${index}`}>
+/* ... */
+
+ele atribui a cada elemento que está sendo renderizado na tela um id uma identificação 
+agora o react concegue mapear este elemento
+
+
+Hooks são funções que permitem que você "se conecte" aos recursos de state e ciclo de vida do React a partir de componentes funcionais. Hooks não funcionam dentro de classes — eles permitem que você use React sem classes.
+
+
+Na próxima seção veremos o uso do hook useState.
+
+
+Utilização do useState
+
+O useState é um hook que permite ter variáveis de estado em componentes funcionais. Você passa o estado inicial para esta função e ela retorna uma variável com o valor do estado atual (não necessariamente o estado inicial) e outra função para atualizar este valor.
+
+const [valorAtual, setarNovoValor] = useState(valorInicial);
+
+Para melhor compreensão, implementaremos a funcionalidade de adição do produto, com um contador indicando o número de itens selecionados.
+
+Adicione o logo da Paleteria e o ícone de sacola que darão identidade ao nosso cardápio. Insira o logo.svg na pasta src/assets e para o ícone sacola.svg crie a pasta icons dentro de src/assets e insira o ícone dentro da pasta src/assets/icons.
+
+https://drive.google.com/file/d/1R1yFHs99nn-H98nsDbRcFg6rWvhFKRFH/view?usp=sharing
+
+https://drive.google.com/file/d/1iycOcV9b18TBRDFVn2ARWlmyvt8-fji4/view?usp=sharing
+
+Começaremos com a inclusão dos imports no arquivo Home.jsx:
+
+/* ... */
+import sacola from "assets/icons/sacola.svg";
+import logo from "assets/logo.svg";
+/* ... */
+
+A seguir adicione somente a estrutura que receberá a lógica no arquivo Home.jsx entre as tags no espaço indicado:
+
+
+/* ... */
+
+<div className="Home">
+
+{/* NOVO TRECHO */}
+
+<div className="Home__header Header">
+  <div className="row">
+      <div className="Header__logo Logo">
+      <img
+          src={logo}
+          width="70px"
+          alt="Logo El Geladon"
+          className="Logo__icone"
+      />
+      <span className="Logo__titulo"> El Geladon </span>
+      </div>
+      <div className="Header__opcoes Opcoes">
+      <div className="Opcoes__sacola Sacola">
+          <img
+          src={sacola}
+          width="40px"
+          className="Sacola__icone"
+          alt="Sacola de compras"
+          />
+      </div>
+      </div>
+  </div>
+</div>
+
+{/* FIM DO NOVO TRECHO */}
+
+<div className="Home__container">
+
+/* ... */
+
+
+
+Veremos o seguinte resultado:
+
+
+É necessário adicionar os estilos. Insira em Home.css:
+
+.Header {
+  max-width: 1110px;
+  margin: 0 auto 25px auto;
+  position: relative;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin: 20px 0 35px 0;
+}
+
+.Logo {
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.3);
+  width: 340px;
+  height: 45px;
+}
+
+.Logo__titulo {
+  position: absolute;
+  left: 55px;
+  font-family: "Exo";
+  font-weight: 700;
+  font-size: 2.5em;
+}
+
+.Logo__icone {
+  position: absolute;
+  left: -20px;
+  top: -15px;
+}
+
+.Sacola {
+  position: relative;
+}
+
+.Sacola__icone {
+  cursor: pointer;
+}
+
+.Sacola__badge {
+  background-color: red;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  position: absolute;
+  color: white;
+  font-size: 0.9em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  bottom: 0;
+  right: 0;
+}
+
+@media (max-width: 1220px) {
+  .Header {
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 840px) {
+  .Header {
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 400px) {
+  .Header {
+    max-width: 250px;
+  }
+
+  .row {
+    column-gap: 20px;
+  }
+
+  .Logo__titulo {
+    font-size: 1.5em;
+  }
+}
+
+Estilo preparado, implementaremos a lógica. Neste momento, o contador de itens selecionados será indicado no próprio item do cardápio.
+
+Comecemos com a desconstrução do retorno do useState({}). Para o estado inicial adicionaremos um objeto vazio, que guardará as informações de quais itens da lista foram selecionados. Observe que ele nos devolve como primeiro parâmetro o objeto contendo o estado de paletasSelecionadas, sendo um objeto no qual a chave é o índex de qual paleta/sabor está adicionada e como valor a quantidade de paletas daquele sabor que foram selecionadas.
+
+Em seguida criaremos a função adicionarItem, ela recebe como parâmetro o index de qual paleta foi adicionada e a partir disso cria um objeto {[index]: quantidade}. O index é utilizado como chave e o valor é atribuído utilizando um pré-existente no objeto, ou 0 caso não exista, somando mais 1.
+
+Após esta criação podemos utilizar o método setQuantidade, onde fará a atualização do estado recebendo como parâmetro um novo objeto criado a partir do objeto de estado atual e o novo objeto de paleta a ser incluso/sobrescrito no estado atual.
+
+Este novo objeto é criado utilizando o Spread Operator ... que obtém somente as propriedades e valores dos objetos anteriores.
+
+Insira a lógica a seguir no arquivo PaletaLista.jsx.
+
+/* ... */
+function PaletaLista() {
+  // NOVO TRECHO
+
+  const [paletaSelecionada, setPaletaSelecionada] = useState({});
+
+  const adicionarItem = (paletaIndex) => {
+          const paleta = { [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) +1 }
+          setPaletaSelecionada({ ...paletaSelecionada, ...paleta});
+  }
+
+  // FIM DO NOVO TRECHO
+
+  return (
+/* ... */
+
+Lembrando que o useState é uma funcionalidade existente na biblioteca do React. Logo, para que funcione, é necessário importá-la no componente.
+
+
+/* NOVO TRECHO */
+import { useState } from "react";
+/* FIM NOVO TRECHO */
+
+import "PaletaLista.css";
+import { paletas } from "mock/paletas";
+
+/* ... */
+
+Preparada a lógica, devemos implementá-la no componente. Adicione no botão a chamada da função adicionarItem como retorno de um callback após adicionar o atributo onClick.
+
+Observe e implemente no arquivo PaletaLista.jsx.
+
+/* ... */
+<button className=onClick={() => "Acoes__adicionar Acoes__adicionar--preencher" adicionarItem(index)}>adicionar</button>
+/* ... */
+
+É preciso visualizar o resultado através de um contador. Vamos incluí-lo criando um badge, que utilizará o objeto de estado atual pegando a quantidade através de seu index ou inferindo 0 caso essa chave não exista no objeto, no arquivo PaletaLista.js no trecho indicado:
+
+...
+<div className="PaletaListaItem" key={`PaletaListaItem-${index}`}>
+	{/* NOVO TRECHO  */}
+
+	<span className="PaletaListaItem__badge"> {paletaSelecionada[index] || 0} </span>
+
+	{/* FIM DO NOVO TRECHO  */}
+
+	<div>
+		<div className="PaletaListaItem__titulo"> { paleta.titulo } </div>
+...
+
+Em seguida adicione o estilo do contador no arquivo PaletaLista.css:
+
+/* ... */
+.PaletaListaItem__badge {
+  background-color: greenyellow;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+  color: black;
+  font-size: .8em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  top: -9px;
+  left: -9px;
+}
+/* ... */
+
+
+O uso do useState pode parecer complexo, mas é questão de prática e teremos muitas utilidades para ele, por enquanto iremos nos conter a essas atribuições.
+
+Até agora só é possível adicionar itens sem podermos removê-los e não há centralização das informações na sacola. Nossa aplicação tem excelentes pontos a serem melhorados e possíveis features a serem implementadas, mas este é o momento de absorver o conteúdo e se preparar para as demais aulas.
+
+Conclusão
+
+
+Com isso, finalizamos a nossa primeira aula sobre o ReactJS! Espero que você tenha curtido esse primeiro overview e essa primeira experiência construindo uma versão mais bonita do frontend que consumirá a API que utilizamos anteriormente
+
+Não se esqueça de praticar! É muito importante que você utilize os próximos Codelabs e invista tempo para aprimorar suas habilidades com HTML, CSS, JavaScript e, principalmente, ReactJS!
+
+
+
+
+
+
+

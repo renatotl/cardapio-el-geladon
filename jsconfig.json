@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+      "baseUrl": "src"
+    },
+    "include": ["src"]/*será nossa pasta raiz e os arquivos vão se referenciar nela*/
+  }
+
+  /*com esse código eu não preciso referenciar os caminhos das pastas. exemplo:
+  ../pasta1/aquivo*/
