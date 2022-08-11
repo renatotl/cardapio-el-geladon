@@ -1,13 +1,16 @@
 import "./PaletaLista.css";
 import { paletas } from "../mocks/paletas";// trazendo milha lista de objetos pra car
-import React, {useState} from 'react';
+import React, {useState} from 'react';// trazendo o useState para dentro do nosso projeto. Esse cara é um HOOK. Qunado clicar dentro de uma plaeta ela será selecionada
 
 // é aqui que vamos renderizar na tela a nossa lista mockada
 function PaletaLista() {
-  const [paletaSelecionada, setPaletaSelecionada] = useState({});
+  //o 1º parametro é p selecionado o 2º é a função que vai alterar esse valor atual
+  const [paletaSelecionada, setPaletaSelecionada] = useState({});// o useState({}) está vazio porque quero que ele começe vazio. O valor do meu objeto inicalmente é vazio
 
-  const adicionarItem = (paletaIndex) => {
-          const paleta = { [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) +1 }
+  const adicionarItem = (paletaIndex) => {// reebendo o paletaIndex que foi clicada
+    // paleta é um objeto { [paletaIndex]: é a minha chaves a paleta selecionada Number(paletaSelecionada[paletaIndex] é o número de vezes que ela foi selecionada 
+          const paleta = { [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) +1 }// incremendando o numero 1 a cada click, se não tiver nada ele coloca 0
+          // passando 2 paramntro o paletaSelecionada pode começar em 0 e paleta} é o click que foi dado que passa para dentro de paletaSelecionada
           setPaletaSelecionada({ ...paletaSelecionada, ...paleta});
   }
   return (
@@ -25,6 +28,7 @@ function PaletaLista() {
               {paleta.descricao}{" "}
             </div>
             <div className="PaletaListaItem__acoes Acoes">
+              
               <button className="Acoes__adicionar Acoes__adicionar--preencher"onClick={() => adicionarItem(index)}>
                 adicionar
               </button>/
@@ -40,6 +44,7 @@ function PaletaLista() {
     </div>
   );
 }
+// o onClick ativa o evento de click
 //no botão adicionar tem duas ações. Uma é a função do botão e a outra pra estilizar no css
 export default PaletaLista;
 

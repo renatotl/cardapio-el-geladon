@@ -1,23 +1,23 @@
 import "./Home.css";// trazendo o arquivo estilizado pra cá
 import PaletaLista from "components/PaletaLista";
 
-import sacola from "../assets/icons/sacola.svg";
-import logo from "../assets/logo.svg";
+import sacola from "../assets/icons/sacola.svg";// trazendo a sacola pra ca
+import logo from "../assets/logo.svg";// trazendo o logo pra cá
 
 
 function Home() {
-  return (
+  return (//
     <div className="Home">
       <div className="Home__header Header">
   <div className="row">
       <div className="Header__logo Logo">
       <img
           src={logo}// importamos o logo assim
-          width="70px"
-          alt="Logo El Geladon"
-          className="Logo__icone"
+          width="70px"//defindo largula
+          alt="Logo El Geladon"// nome pro logo
+          className="Logo__icone"// será usada no css
       />
-      <span className="Logo__titulo"> El Geladon </span> 
+      <span className="Logo__titulo"> El Geladon </span>
       </div>
       <div className="Header__opcoes Opcoes">
       <div className="Opcoes__sacola Sacola">

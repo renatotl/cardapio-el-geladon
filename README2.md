@@ -28,6 +28,14 @@ um erro comum é o reacct pedin um id único para cada elemento da lista
 as chamadas keys 
 neste caso em paletalista.jsx em div clasname paletalistaitam
 
+HOOKS: são funções que permita conectar ao recursos de state e cíclo de vida do react apartir de components funcionais
+NÃO FUNCIONAM DENTRO DE CLASSES
+state cuida dos valores do nosso componente e a medida que esses valores são renderizados o componente sofre uma nova renderização.
+Um componente pode sermondato ou desmontado na tela e sofre atualização.
+o hook permite que vc mude o stado de um componete e os recursos de cíclo de vida de um componente 
+
+nosso primeiro hook é o useState: que muda o stato da nossa aplicação.
+Ele que muda o estado do nosso componente
 
 
 
