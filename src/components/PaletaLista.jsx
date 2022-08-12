@@ -13,11 +13,29 @@ function PaletaLista() {
           // passando 2 paramntro o paletaSelecionada pode começar em 0 e paleta} é o click que foi dado que passa para dentro de paletaSelecionada
           setPaletaSelecionada({ ...paletaSelecionada, ...paleta});
   }
+
+// função com 2 params o 1º é a condição o 2º a paleta selecionada
+// se a condição de baixo for verdadeira ele vai renderizar o span
+  const badgeCounter = (canRender, index) =>
+	Boolean(canRender) && (<span className="PaletaListaItem__badge"> {paletaSelecionada[index]} </span>);
+
+  const removeButton = (canRender, index) =>
+	Boolean(canRender) && (<button className="Acoes__remover" onClick={() => removerItem(index)}>remover</button>);
+
+
+
+  //essa função aje ao contrário do adicionarItem
+  const removerItem = (paletaIndex) => {
+    const paleta = { [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) +1 }
+    setPaletaSelecionada({...paletaSelecionada, ...paleta});
+}
+
+  //a função de cima precisa ser antes do return de baixo
   return (
     <div className="PaletaLista">
       {paletas.map((paleta, index) => (//funão que vai interar ou varrer milha lista de objetos // a key é o index da lista e el vai atribuir um id a cada elemento renderizado na tela
         <div className="PaletaListaItem" key={`PaletaListaItem-${index}`}>
-          <span className="PaletaListaItem__badge"> {paletaSelecionada[index] || 0} </span>
+          {badgeCounter(paletaSelecionada[index], index)}
           <div>
             <div className="PaletaListaItem__titulo"> {paleta.titulo} </div>
             <div className="PaletaListaItem__preco">
@@ -29,9 +47,11 @@ function PaletaLista() {
             </div>
             <div className="PaletaListaItem__acoes Acoes">
               
-              <button className="Acoes__adicionar Acoes__adicionar--preencher"onClick={() => adicionarItem(index)}>
+              <button className={`Acoes__adicionar ${!paletaSelecionada[index] && "Acoes__adicionar--preencher"}`} onClick={() => adicionarItem(index)}>
                 adicionar
               </button>/
+              {removeButton(paletaSelecionada[index], index)}
+
             </div>
           </div>
           <img

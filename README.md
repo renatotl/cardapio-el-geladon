@@ -1053,3 +1053,115 @@ Não se esqueça de praticar! É muito importante que você utilize os próximos
 Versionamneto é enviar para o github
 
 
+Recapitulando
+Antes de darmos início a próxima aula, iremos relembrar os itens aprendidos na aula anterior:
+Conhecemos o conceito de uso e aplicabilidade do React;
+Aprendemos a instalar a extensão do React no VSCode, tanto pelo site como diretamente pelo editor;
+Aprendemos a instalar a extensão React Developer Tools no Google Chrome;
+Realizamos a criação do projeto com o npx;
+Observamos algumas saídas de erro no terminal e no console, durante a edição do projeto, e como corrigi-las;
+Estruturamos a forma básica de imports para a criação de nossos componentes;
+Estilizamos o projeto;
+Criamos e renderizamos uma lista de objetos em memória;
+Aprendemos a utilizar o useState.
+A aplicação ficou com a seguinte aparência:
+
+
+Em uma aplicação, é comum precisarmos exibir ou esconder um elemento, conforme certa condição. Pode ser uma interação do usuário, presença OU ausência de dados vindos em uma request, ou até mesmo níveis de permissão de usuário. Esse é o conceito de renderização condicional e abordaremos mais a seguir.
+Daremos início com os badges, que não devem renderizar quando zerados, mas sim, renderizar somente quando os itens forem selecionados.
+Iniciando com a criação de uma função chamada badgeCounter que recebe dois parâmetros, sendo o primeiro a condição de renderização, que vamos chamá-la canRender.
+O segundo parâmetro é o index, representando o número do item que está sendo selecionado (onde será renderizado o contador).
+Assim há uma verificação: quando o canRender for true o operador && renderiza o badge naquele index. Caso o canRender seja false o operador && também torna a renderização falsa, portanto não aparece na tela.
+Insira o seguinte trecho na função PaletaLista() no arquivo PaletaLista.jsx:
+...
+const badgeCounter = (canRender, index) =>
+	Boolean(canRender) && (<span className="PaletaListaItem__badge"> {paletaSelecionada[index]} </span>);
+...
+Função criada, vamos nos atentar em adicionar a renderização no código que fará a exibição do template:
+...
+{paletas.map((paleta, index) =>
+	<div className="PaletaListaItem" key={`PaletaListaItem-${index}`}>
+​
+	{/* NOVO TRECHO */}
+  {badgeCounter(paletaSelecionada[index], index)}
+​
+	{/* FIM DO NOVO TRECHO */}
+​
+		<div>
+			<div className="PaletaListaItem__titulo"> { paleta.titulo } </div>
+...
+
+
+Agora que não há mais badges sendo exibidos, vamos adicionar o item Chocolate Belga, no nosso caso o terceiro item da lista:
+
+Perceba que agora somente os itens adicionados irão receber o badge com o contador, assim tudo se torna visualmente limpo e de fácil identificação.
+Agora que já conhecemos o conceito de renderização condicional, podemos adicionar a 
+funcionalidade de remover alguns itens que foram adicionados.
+
+
+
+A estilização condicional nos permite transitar entre propriedades de estilo conforme dada condição através de classes css.
+Primeiro precisamos editar o modificador de estilo no botão de adicionar no arquivo PaletaLista.jsx:
+Antes:
+
+...
+<button className="Acoes__adicionar Acoes__adicionar--preencher" onClick={() => adicionarItem(index)}>adicionar</button>
+...
+
+...
+<button className={`Acoes__adicionar ${!paletaSelecionada[index] && "Acoes__adicionar--preencher"}`} onClick={() => adicionarItem(index)}>adicionar</button>
+...
+
+As estilizações css já foram apresentadas na aula passada, mas basicamente, este conceito segue o comportamento de toggle* das classes no elemento, neste caso adicionando ou removendo a classe de preenchimento.
+
+* toggle, switch (do inglês: interruptor), ou comutador, é um elemento/comportamento de interação alternando através de uma ação entre dois valores.
+
+Após essa edição não será visível nenhuma mudança perceptível, exceto quando acionamos o botão de adicionar algum item:
+
+Feito isto, agora temos o espaço para adicionar o botão de remover, mas antes precisamos adicionar a lógica de remoção, muito semelhante à de adição apresentada na aula passada.
+
+Adicione dentro da função PaletaLista():
+
+const removerItem = (paletaIndex) => {
+        const paleta = { [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) -1 }
+        setPaletaSelecionada({...paletaSelecionada, ...paleta});
+}
+
+Observe que a única diferença está na subtração.
+Agora sobre o aprendizado de renderização condicional poderemos implementar o botão de remover somente quando houver item adicionado.
+Iniciaremos com a criação da função removeButton que fará a devolução condicional do botão renderizado.
+Adicione dentro da função PaletaLista()
+
+const removeButton = (canRender, index) =>
+	Boolean(canRender) && (<button className="Acoes__remover" onClick={() => removerItem(index)}>remover</button>);
+...
+
+
+Observe que a única diferença está na subtração.
+Agora sobre o aprendizado de renderização condicional poderemos implementar o botão de remover somente quando houver item adicionado.
+Iniciaremos com a criação da função removeButton que fará a devolução condicional do botão renderizado.
+Adicione dentro da função PaletaLista():
+
+const removeButton = (canRender, index) =>
+	Boolean(canRender) && (<button className="Acoes__remover" onClick={() => removerItem(index)}>remover</button>);
+
+
+Agora podemos implementar a renderização no código que fará a exibição do template:
+
+
+<div className="PaletaListaItem__acoes Acoes">
+	<button className={`Acoes__adicionar ${!paletaSelecionada[index] && "Acoes__adicionar--preencher"}`} onClick={() => adicionarItem(index)}>adicionar</button>
+
+	{/* NOVO TRECHO */}
+
+	{removeButton(paletaSelecionada[index], index)}
+
+	{/* FIM DO NOVO TRECHO */}
+
+</div>
+
+
+Note que, ao removermos todos os itens selecionados através do botão remover, os estilos são resetados e tanto o badge quanto o botão remover não são renderizados:
+
+
+
