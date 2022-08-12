@@ -39,3 +39,6 @@ Ele que muda o estado do nosso componente
 
 
 
+VERSIONAMENTO É ENVIAR PARA OA GITHUB
+
+
