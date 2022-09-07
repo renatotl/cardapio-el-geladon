@@ -19,7 +19,7 @@ function PaletaLista() {
 
   //essa função aje ao contrário do adicionarItem
   const removerItem = (paletaIndex) => {
-    const paleta = { [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) +1 }
+    const paleta = { [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) -1 }
     setPaletaSelecionada({...paletaSelecionada, ...paleta});
 }
 

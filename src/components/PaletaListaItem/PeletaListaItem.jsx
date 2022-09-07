@@ -1,4 +1,4 @@
-import "PaletaListaItem.css";
+import "./PaletaListaItem.css";
 
 function PaletaListaItem({ paleta, quantidadeSelecionada, index ,onRemove, onAdd }) {
 
