@@ -1163,5 +1163,736 @@ Agora podemos implementar a renderização no código que fará a exibição do 
 
 Note que, ao removermos todos os itens selecionados através do botão remover, os estilos são resetados e tanto o badge quanto o botão remover não são renderizados:
 
+Nossa aplicação parece funcional, porém vamos organizar as coisas por aqui e tratar de Arquitetura de pastas
+
+
+Arquitetura de pastas
+
+Está na hora de organizarmos os arquivos apresentados, pois um dos pilares para o desenvolvimento de código é a manutenibilidade e para ser mantido de forma organizada, utilizaremos padrões de arquitetura para auxiliar no desenvolvimento.
+
+A manutenibilidade, é o conceito que busca contemplar os três tipos de manutenção já existentes: corretiva, preditiva e preventiva. Resumidamente, é uma dinâmica que visa o melhoramento contínuo da manutenção.
+
+Provavelmente seu projeto se encontrará disposto da seguinte forma:
+
+Cuidamos de organizar a pasta assets e mocks dentro de src, porém todos os componentes e seus estilos estão "soltos" na pasta principal.
+
+Primeiro vamos segregá-los por pastas contendo o nome do componente como nome da pasta que agregará seus arquivos de lógica e estilo, exceto pelos arquivos de index.
+
+Teremos algo com o seguinte aspecto:
+
+Lembre-se de que ao criar e mover os arquivos de lugar é necessário atualizar os imports, mas vamos cuidar disso por último.
+
+Agora devemos compreender quais componentes são páginas da aplicação e quais são trechos dela e podem ser reutilizáveis. Neste caso temos como página principal o componente Home e como reutilizável o componente PaletaLista.
+
+Feito esta análise, vamos prosseguir com a criação de duas pastas em src, sendo elas as pastas, components e views.
+
+Vamos mover o componente de Home para a pasta views e o componente PaletaLista para a pasta components.
+
+Obteremos o seguinte resultado:
+
+Responsabilidades separadas, vamos renomear o arquivo index.css para main.css e movê-lo para uma nova pasta que criaremos dentro de src/assets chamada styles.
+
+Ficará assim:
+
+Agora que nossa arquitetura de pastas está organizada, poderemos dar sequência com a atualização dos imports de arquivos em nossos componentes.
+
+Dentro do arquivo index.jsx o import do componente Home e o novo arquivo de estilo principal, chamado main.css, serão feitos da seguinte forma:
+
+...
+import Home from "./views/Home/Home";
+​
+import "assets/styles/main.css";
+
+E dentro do arquivo Home.jsx o import do componente PaletaLista será feito da seguinte forma:
+
+import PaletaLista from "components/PaletaLista/PaletaLista";
+
+Se em seu componente PaletaLista.jsx o import do estilo estiver:
+
+import "PaletaLista.css";
+
+Provavelmente seu compilador acusará erro para encontrar o arquivo de estilo, pois está tentando encontrar o arquivo na raiz de src, apenas altere para:
+
+import "./PaletaLista.css";
+
+
+E então reinicie em seu terminal o servidor local, parando-o com o atalho CTRL + C e executando o comando npm start.
+
+
+Ajustes realizados, podemos notar que os componentes que temos criados são consideravelmente grandes e possíveis de serem subdivididos. Realizaremos essa subdivisão no assunto seguinte.
+
+
+Subdivisão de componentes
+
+
+Subdividir componentes faz parte do processo de criação e construção de projetos, analisar e perceber partes que podem ser reutilizáveis ou mais bem compreendidas, se separadas em trechos menores.
+
+Componentes view, particularmente são estruturas que fazem a composição da página e devem separar apenas estruturalmente seus componentes.
+
+Vamos observar o componente Home da nossa aplicação, localizado em src/views/Home/Home.jsx:
+
+import "./Home.css";
+import PaletaLista from "components/PaletaLista/PaletaLista";
+​
+import sacola from "assets/icons/sacola.svg";
+import logo from "assets/logo.svg";
+​
+function Home() {
+  return (
+    <div className="Home">
+      <div className="Home__header Header">
+        <div className="row">
+          <div className="Header__logo Logo">
+            <img
+              src={logo}
+              width="70px"
+              alt="Logo El Geladon"
+              className="Logo__icone"
+            />
+            <span className="Logo__titulo"> El Geladon </span>
+          </div>
+          <div className="Header__opcoes Opcoes">
+            <div className="Opcoes__sacola Sacola">
+              <img
+                src={sacola}
+                width="40px"
+                className="Sacola__icone"
+                alt="Sacola de compras"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="Home__container">
+        <PaletaLista />
+      </div>
+    </div>
+  );
+}
+
+export default Home;
+
+Neste caso é possível notar que há somente a separação do componente PaletaLista e toda a estrutura de header da página está adicionada na view, podendo ser componentizada.
+
+
+Iremos remover os seguintes trechos para um novo componente chamado Navbar, que será adicionado em src/components/Navbar/Navbar.jsx:
+
+...
+import sacola from "assets/icons/sacola.svg"
+import logo from "assets/logo.svg"
+...
+...
+<div className="Header">
+	<div className="row">
+		<div className="Header__logo Logo">
+			<img src={logo} width="70px" alt="Logo El Geladon" className="Logo__icone" />
+			<span className="Logo__titulo"> El Geladon </span>
+		</div>
+		<div className="Header__opcoes Opcoes">
+			<div className="Opcoes__sacola Sacola">
+				<img src={sacola} width="40px" className="Sacola__icone" alt="Sacola de compras" />
+			</div>
+		</div>
+	</div>
+</div>
+...
+Para subdividir completamente, é necessário separar a parte da folha de estilos correspondente em src/components/Navbar/Navbar.css e já importá-lo em nosso componente correspondente:
+.Header {
+  max-width: 1110px;
+  margin: 0 auto 25px auto;
+  position: relative;
+}
+​
+.row {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin: 20px 0 35px 0;
+}
+​
+
+.Logo {
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.3);
+  width: 340px;
+  height: 45px;
+}
+​
+.Logo__titulo {
+  position: absolute;
+  left: 55px;
+  font-family: "Exo";
+  font-weight: 700;
+  font-size: 2.5em;
+}
+
+.Logo__icone {
+  position: absolute;
+  left: -20px;
+  top: -15px;
+}
+​
+.Sacola {
+  position: relative;
+}
+​
+.Sacola__icone {
+  cursor: pointer;
+}
+​
+.Sacola__badge {
+  background-color: red;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  position: absolute;
+  color: white;
+  font-size: 0.9em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  bottom: 0;
+  right: 0;
+}
+​
+@media (max-width: 1220px) {
+  .Header {
+    max-width: 720px;
+  }
+}
+​
+@media (max-width: 840px) {
+  .Header {
+    max-width: 320px;
+  }
+}
+​
+@media (max-width: 400px) {
+  .Header {
+    max-width: 250px;
+  }
+​
+  .row {
+    column-gap: 20px;
+  }
+​
+  .Logo__titulo {
+    font-size: 1.5em;
+  }
+}
+
+Para evitarmos confusões, irei mostrar como ficaram os arquivos.
+
+Assim ficou nosso componente Navbar:
+
+import "./Navbar.css";
+​
+import sacola from "assets/icons/sacola.svg";
+import logo from "assets/logo.svg";
+​
+function Navbar() {
+  return (
+    <div className="Header">
+      <div className="row">
+        <div className="Header__logo Logo">
+          <img
+            src={logo}
+            width="70px"
+            alt="Logo El Geladon"
+            className="Logo__icone"
+          />
+          <span className="Logo__titulo"> El Geladon </span>
+        </div>
+        <div className="Header__opcoes Opcoes">
+          <div className="Opcoes__sacola Sacola">
+            <img
+              src={sacola}
+              width="40px"
+              className="Sacola__icone"
+              alt="Sacola de compras"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+​
+export default Navbar;
+No arquivo Home.jsx já iremos adicionar o import de Navbar.jsx e implementá-lo no trecho removido, ficando assim:
+
+import "./Home.css";
+import PaletaLista from "components/PaletaLista/PaletaLista";
+import Navbar from "components/Navbar/Navbar";
+​
+function Home() {
+  return (
+    <div className="Home">
+      <Navbar />
+      <div className="Home__container">
+        <PaletaLista />
+      </div>
+    </div>
+  );
+}
+​
+export default Home;
+
+E para finalizar, assim ficou a folha de estilos Home.css:
+
+.Home {
+  position: relative;
+  background-image: radial-gradient(
+    farthest-corner at 40px 40px,
+    #50c5ee 60%,
+    rgba(0, 212, 255, 0.5) 100%
+  );
+  min-height: calc(100vh - 60px);
+  margin: 15px;
+  padding: 15px;
+  border-radius: 20px;
+  color: black;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+}
+​
+.Home__container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+​
+@media (max-width: 350px) {
+  .Home__container {
+    justify-content: unset;
+  }
+}
+
+Estrutura de página separada, há mais uma subdivisão possível no componente que faz a renderização da lista de paletas. No componente PaletaLista vamos remover os seguintes trechos para um novo componente que será adicionado em src/components/PaletaListaItem/PaletaListaItem.jsx, lembrando de não copiar a propriedade key, pois ela pertence à lista:
+
+
+...
+const removeButton = (canRender, index) =>
+	Boolean(canRender) && (<button className="Acoes__remover" onClick={() => removerItem(index)}>remover</button>);
+​
+
+const badgeCounter = (canRender, index) =>
+	Boolean(canRender) && (<span className="PaletaListaItem__badge"> {paletaSelecionada[index]} </span>);
+
+...
+<div className="PaletaListaItem">
+	{badgeCounter(paletaSelecionada[index], index)}
+	<div>
+		<div className="PaletaListaItem__titulo"> { paleta.titulo } </div>
+		<div className="PaletaListaItem__preco">R$ { paleta.preco.toFixed(2) }</div>
+		<div className="PaletaListaItem__descricao"> { paleta.descricao }  </div>
+		<div className="PaletaListaItem__acoes Acoes">
+			<button className={`Acoes__adicionar ${!paletaSelecionada[index] && "Acoes__adicionar--preencher"}`} onClick={() => adicionarItem(index)}>adicionar</button>
+	javas		{removeButton(paletaSelecionada[index], index)}
+		</div>
+	</div>
+	<img className="PaletaListaItem__foto" src={paleta.foto} alt={`Paleta de ${paleta.sabor}`} />
+</div>
+...
+
+Não vamos esquecer de mover o trecho de estilos necessários de PaletaLista.css para src/components/PaletaListaItem/PaletaListaItem.css:
+
+
+.PaletaListaItem {
+  font-family: "Exo";
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+  width: 315px;
+  display: flex;
+  justify-content: space-around;
+  position: relative;
+}
+​
+@media (max-width: 400px) {
+  .PaletaListaItem {
+    width: 210px;
+    height: 180px;
+  }
+}
+​
+.PaletaListaItem__badge {
+  background-color: greenyellow;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  vertical-align: middle;
+  position: absolute;
+  color: black;
+  font-size: 0.8em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  top: -9px;
+  left: -9px;
+}
+​
+.PaletaListaItem > div {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+​
+.PaletaListaItem__titulo {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 100%;
+}
+​
+.PaletaListaItem__descricao {
+  font-size: 0.85em;
+}
+​
+.PaletaListaItem__preco {
+  color: darkviolet;
+}
+​
+.Acoes {
+  display: flex;
+  justify-content: space-between;
+}
+​
+.Acoes__adicionar,
+.Acoes__remover {
+  border: none;
+  color: white;
+  border-radius: 5px;
+  font-family: "Exo", sans-serif;
+  padding: 5px;
+  max-width: 280px;
+  text-align: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  width: 48%;
+}
+​
+.Acoes__remover {
+  background-color: red;
+}
+​
+.Acoes__adicionar {
+  background-color: darkviolet;
+}
+​
+.Acoes__adicionar--preencher {
+  width: 100%;
+}
+​
+.PaletaListaItem__foto {
+  height: 150px;
+  margin-right: -60px;
+}
+Edições realizadas, hora de conferir como ficaram os arquivos.
+Assim ficou o componente PaletaListaItem:
+import "./PaletaListaItem.css";
+​
+function PaletaListaItem() {
+  const removeButton = (canRender, index) =>
+    Boolean(canRender) && (
+      <button className="Acoes__remover" onClick={() => removerItem(index)}>
+        remover
+      </button>
+    );
+​
+  const badgeCounter = (canRender, index) =>
+    Boolean(canRender) && (
+      <span className="PaletaListaItem__badge">
+        {" "}
+        {paletaSelecionada[index]}{" "}
+      </span>
+    );
+​
+  return (
+    <div className="PaletaListaItem">
+      {badgeCounter(paletaSelecionada[index], index)}
+      <div>
+        <div className="PaletaListaItem__titulo"> {paleta.titulo} </div>
+        <div className="PaletaListaItem__preco">
+          R$ {paleta.preco.toFixed(2)}
+        </div>
+        <div className="PaletaListaItem__descricao"> {paleta.descricao} </div>
+        <div className="PaletaListaItem__acoes Acoes">
+          <button
+            className={`Acoes__adicionar ${
+              !paletaSelecionada[index] && "Acoes__adicionar--preencher"
+            }`}
+            onClick={() => adicionarItem(index)}
+          >
+            adicionar
+          </button>
+          {removeButton(paletaSelecionada[index], index)}
+        </div>
+      </div>
+      <img
+        className="PaletaListaItem__foto"
+        src={paleta.foto}
+        alt={`Paleta de ${paleta.sabor}`}
+      />
+    </div>
+  );
+}
+​
+export default PaletaListaItem;
+No arquivo PaletaLista.jsx já iremos adicionar o import de PaletaListaItem.jsx e implementá-lo no lugar antes ocupado pelo trecho removido, lembrando de adicionar a propriedade key, ficando assim:
+import { paletas } from "mocks/paletas.js";
+import "./PaletaLista.css";
+import { useState } from "react";
+import PaletaListaItem from "components/PaletaListaItem/PaletaListaItem";
+​
+function PaletaLista() {
+  const [paletaSelecionada, setPaletaSelecionada] = useState({});
+​
+  const adicionarItem = (paletaIndex) => {
+    const paleta = {
+      [paletaIndex]: (paletaSelecionada[paletaIndex] || 0) + 1}
+    setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+  };
+​
+  const removerItem = (paletaIndex) => {
+    const paleta = {
+      [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) - 1}
+    setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+  };
+​
+  return (
+    <div className="PaletaLista">
+      {paletas.map((paleta, index) => (
+        <PaletaListaItem key={`PaletaListaItem-${index}`} />
+      ))}
+    </div>
+  );
+}
+​
+export default PaletaLista;
+E por último, assim ficou a folha de estilos PaletaLista.css:
+.PaletaLista {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 25px 50px;
+}
+​
+@media (max-width: 1220px) {
+  .PaletaLista {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+​
+@media (max-width: 840px) {
+  .PaletaLista {
+    grid-template-columns: 1fr;
+  }
+}
+Ufa, agora podemos ver nosso trabalho:
+Exibição de erro no navegador
+Parece que não ficou como esperávamos. Isso ocorreu devido aos componentes tratarem seu conteúdo através de escopos e obviamente separamos lógicas que estavam intrinsecamente ligadas para o funcionamento correto.
+Mas isso não significa que devemos atrelá-los novamente, perdendo o benefício de componentes pequenos e reutilizáveis. Vamos, por hora, apenas criar mocks* provisórios para simular os escopos.
+* mocks, são objetos simulados ou simplesmente mock em desenvolvimento de software são objetos que simulam o comportamento de objetos reais de forma controlada. Normalmente criados para testar o comportamento de outros objetos.
+Todos os erros de escopo estão presentes no componente PaletaListaItem. vamos adicionar os mocks necessários e inexistentes no escopo do nosso componente:
+...
+function PaletaListaItem() {
+​
+	{/* NOVO TRECHO */}
+​
+	const removerItem = (i) => console.log('remover' + i);
+	const adicionarItem = (i) => console.log('adicionar' + i);
+	const paletaSelecionada = [0];
+	const index = 0;
+	const paleta = {
+		titulo: "Açaí com Leite Condensado",
+		descricao:
+		"Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+		foto: require("assets/images/acai-com-leite-condensado.png"),
+		preco: 10.0,
+		sabor: "Açaí",
+		recheio: "Leite Condensado",
+		possuiRecheio: true,
+	};
+​
+	{/* FIM DO NOVO TRECHO */}
+​
+	const removeButton = (canRender, index) =>
+...
+Logo a aplicação volta a renderizar nossa lista:
+Exibição da aplição sem o erro no navegador
+Porém, só nos é exibido um único objeto, neste caso, o que escolhemos para servir de mock o Açaí com Leite Condensado.
+Para obtermos novamente uma renderização dinâmica em nosso componente, se faz necessário conhecer o conceito de propriedades parametrizáveis para realizar data binding, a ser explicado no próximo tópico.
+* Data Binding é uma técnica geral que une duas fontes de dados/informações e as mantém em sincronia em um processo que estabelece uma conexão entre interface de usuário da aplicação e a lógica de negócio.
+
+
+Propriedades parametrizáveis (PAI P/FILHO)
+
+
+
+Para implementar em nossa aplicação é necessário parametrizar na assinatura de método da função principal de nosso componente os dados que substituirão nossos mocks.
+
+
+Basicamente temos 3 propriedades a serem utilizadas no componente PaletaListaItem, sendo eles o objeto de paleta a ser renderizado, quantidade de paletas selecionadas e o index.
+
+Não iremos tratar neste tópico os mocks de funções.
+
+Dito isto vamos remover o seguinte trecho:
+
+
+...
+const paletaSelecionada = [0];
+const index = 0;
+const paleta = {
+    titulo: "Açaí com Leite Condensado",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: require("assets/images/acai-com-leite-condensado.png").default,
+    preco: 10.0,
+    sabor: "Açaí",
+    recheio: "Leite Condensado",
+    possuiRecheio: true,
+  };
+...
+
+Em seguida adicionar os parâmetros, na assinatura de método de forma desconstruída:
+
+function PaletaListaItem({ paleta, quantidadeSelecionada, index }) {
+
+Note que ao fazer isto devemos substituir em todos os locais onde aparece paletaSelecionada[index] por quantidadeSelecionada, ficando assim o arquivo PaletaListaItem.jsx:
+
+
+import "./PaletaListaItem.css";
+
+function PaletaListaItem({ paleta, quantidadeSelecionada, index }) {
+  const removerItem = (i) => console.log("remover" + i);
+  const adicionarItem = (i) => console.log("adicionar" + i);
+
+  const removeButton = (canRender, index) =>
+    Boolean(canRender) && (
+      <button className="Acoes__remover" onClick={() => removerItem(index)}>
+        {" "}
+        remover{" "}
+      </button>
+    );
+
+  const badgeCounter = (canRender) =>
+    Boolean(canRender) && (
+      <span className="PaletaListaItem__badge"> {quantidadeSelecionada} </span>
+    );
+
+  return (
+    <div className="PaletaListaItem">
+      {badgeCounter(quantidadeSelecionada, index)}
+      <div>
+        <div className="PaletaListaItem__titulo"> {paleta.titulo} </div>
+        <div className="PaletaListaItem__preco">
+          R$ {paleta.preco.toFixed(2)}
+        </div>
+        <div className="PaletaListaItem__descricao"> {paleta.descricao} </div>
+        <div className="PaletaListaItem__acoes Acoes">
+          <button
+            className={`Acoes__adicionar ${
+              !quantidadeSelecionada && "Acoes__adicionar--preencher"
+            }`}
+            onClick={() => adicionarItem(index)}
+          >
+            adicionar
+          </button>
+          {removeButton(quantidadeSelecionada, index)}
+        </div>
+      </div>
+      <img
+        className="PaletaListaItem__foto"
+        src={paleta.foto}
+        alt={`Paleta de ${paleta.sabor}`}
+      />
+    </div>
+  );
+}
+
+export default PaletaListaItem;
+
+Agora devemos passar os parâmetros no componente PaletaLista:
+
+...
+{paletas.map((paleta, index) =>
+	<PaletaListaItem
+		key={`PaletaListaItem-${index}`}
+		paleta={paleta}
+		quantidadeSelecionada={paletaSelecionada[index]}
+		index={index} />
+	)
+}
+...
+
+E voilá:
+
+
+Ainda temos de resolver a comunicação de ações a serem efetuadas entre componentes filhos para componentes pai.
+
+
+Propriedades parametrizáveis (FILHO P/PAI)
+
+
+
+Através das propriedades parametrizáveis foi possível transmitir dados entre componentes pais para filhos, já para realizar a transmissão de um componente filho para um componente pai é similar.
+Remova o trecho correspondente às funções de mock:
+...
+const removerItem = (i) => console.log('remover' + i);
+const adicionarItem = (i) => console.log('adicionar' + i);
+...
+Em seguida adicione as propriedades onRemove e onAdd na assinatura de método de forma desconstruída no componente PaletaListaItem:
+
+
+...
+function PaletaListaItem({ paleta, quantidadeSelecionada, index, onRemove, onAdd }) {
+...
+
+Então substitua as chamadas de removerItem e adicionarItem pelos parâmetros que criamos respectivamente:
+...
+const removeButton = (canRender, index) =>
+	Boolean(canRender) && (<button className="Acoes__remover" onClick={() => onRemove(index)}>remover</button>);
+...
+...
+<button className={`Acoes__adicionar ${!quantidadeSelecionada && "Acoes__adicionar--preencher"}`} onClick={() => onAdd(index)}>adicionar</button>
+...
+Feito isto, iremos adicionar as manipulações de dados no componente pai, neste caso PaletaLista:
+...
+<div className="PaletaLista">
+	{paletas.map((paleta, index) =>
+		<PaletaListaItem
+			key={`PaletaListaItem-${index}`}
+			paleta={paleta}
+			quantidadeSelecionada={paletaSelecionada[index]}
+			index={index}
+			onAdd={index => adicionarItem(index)}
+			onRemove={index => removerItem(index)} />
+		)
+	}
+</div>
+...
+Pronto, nossa aplicação continua funcional e igual antes de todas as modificações realizadas.
+
+
+Para finalizar, vamos tratar de observar o funcionamento da extensão React Developer Tools.
+
+
+Ao desenvolver uma aplicação React, durante o processo de debug a extensão do React Developer Tools nos auxilia de uma forma prática e simples.
+Após a instalação obteremos duas novas guias em nosso Chrome DevTools, as abas ⚛️ Components e ⚛️ Profiler.
+A guia ⚛️ Components mostra os componentes em estrutura de árvore de elementos React que foram renderizados na página, bem como os subcomponentes que eles acabaram por renderizar.
+Ao selecionar um dos componentes na árvore, você pode inspecionar e editar seus atributos e estado atuais.
+A guia ⚛️ Profiler permite registrar informações de desempenho.
+
+Próximos passos
+Até o momento a aplicação parece bem robusta e cumpre a maioria de suas funções propostas, como cardápio, porém, seria interessante haver centralização das informações na sacola e possivelmente uma funcionalidade para realizar filtros ou buscas pelos itens desejados. Nossa aplicação tem features a serem implementadas e possíveis integrações a serem adicionadas, mas é o momento de absorver o conteúdo da aula atual e se preparar para as demais aulas.
+
+
+
+
+
 
 

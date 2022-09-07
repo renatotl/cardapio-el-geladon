@@ -1,5 +1,6 @@
 import "./PaletaLista.css";
-import { paletas } from "../mocks/paletas";// trazendo milha lista de objetos pra car
+import PaletaListaItem from "components/PaletaListaItem/PeletaListaItem";
+import { paletas } from "mocks/paletas";// trazendo milha lista de objetos pra car
 import React, {useState} from 'react';// trazendo o useState para dentro do nosso projeto. Esse cara é um HOOK. Qunado clicar dentro de uma plaeta ela será selecionada
 
 // é aqui que vamos renderizar na tela a nossa lista mockada
@@ -14,14 +15,6 @@ function PaletaLista() {
           setPaletaSelecionada({ ...paletaSelecionada, ...paleta});
   }
 
-// função com 2 params o 1º é a condição o 2º a paleta selecionada
-// se a condição de baixo for verdadeira ele vai renderizar o span
-  const badgeCounter = (canRender, index) =>
-	Boolean(canRender) && (<span className="PaletaListaItem__badge"> {paletaSelecionada[index]} </span>);
-
-  const removeButton = (canRender, index) =>
-	Boolean(canRender) && (<button className="Acoes__remover" onClick={() => removerItem(index)}>remover</button>);
-
 
 
   //essa função aje ao contrário do adicionarItem
@@ -34,34 +27,23 @@ function PaletaLista() {
   return (
     <div className="PaletaLista">
       {paletas.map((paleta, index) => (//funão que vai interar ou varrer milha lista de objetos // a key é o index da lista e el vai atribuir um id a cada elemento renderizado na tela
-        <div className="PaletaListaItem" key={`PaletaListaItem-${index}`}>
-          {badgeCounter(paletaSelecionada[index], index)}
-          <div>
-            <div className="PaletaListaItem__titulo"> {paleta.titulo} </div>
-            <div className="PaletaListaItem__preco">
-              R$ {paleta.preco.toFixed(2)}
-            </div>
-            <div className="PaletaListaItem__descricao">
-              {" "}
-              {paleta.descricao}{" "}
-            </div>
-            <div className="PaletaListaItem__acoes Acoes">
-              
-              <button className={`Acoes__adicionar ${!paletaSelecionada[index] && "Acoes__adicionar--preencher"}`} onClick={() => adicionarItem(index)}>
-                adicionar
-              </button>/
-              {removeButton(paletaSelecionada[index], index)}
-
-            </div>
-          </div>
-          <img
-            className="PaletaListaItem__foto"
-            src={paleta.foto}
-            alt={`Paleta de ${paleta.sabor}`}
-          />
-        </div>
+      
+      //pegamos a nossa PaletaListaItem que foi importada já com oscódigos
+        <PaletaListaItem 
+        key={`PaletaListaItem-${index}`} //valores que estão sendo passados como parametros de pai para filho
+        paleta ={paleta}
+        quantidadeSelecionada ={paletaSelecionada[index]}
+        index={index} 
+        onAdd={index => adicionarItem(index)}
+			  onRemove={index => removerItem(index)} 
+      />
       ))}
     </div>
+
+// componente/PaletaLista = PAI
+// componente PaletaListaItem = FILHO
+
+
   );
 }
 // o onClick ativa o evento de click

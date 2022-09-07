@@ -1,10 +1,10 @@
 import React from "react";// biblioteca react. Apartir da versao 16, esta linha n e obri...// biblioteca dom que renderiza os componentes em tela
 import ReactDOM from "react-dom";
 
-import Home from "./components/Home"// trazendo para Home o nosso index.jsx lá em componentes
+import Home from "./views/Home/Home"// trazendo para Home o nosso index.jsx lá em componentes
 
 
-import './index.css';// trazendo o arquivo estilizado do index.css pra cá
+import './assets/style/main.css';// trazendo o arquivo estilizado do assets/style pra cá
 
 // o componete Home virou uma TAG
 //renderiza o conteúdo abaixo
