@@ -1891,6 +1891,84 @@ Próximos passos
 Até o momento a aplicação parece bem robusta e cumpre a maioria de suas funções propostas, como cardápio, porém, seria interessante haver centralização das informações na sacola e possivelmente uma funcionalidade para realizar filtros ou buscas pelos itens desejados. Nossa aplicação tem features a serem implementadas e possíveis integrações a serem adicionadas, mas é o momento de absorver o conteúdo da aula atual e se preparar para as demais aulas.
 
 
+SEMANA 2
+
+
+Recapitulando
+Antes de darmos início a próxima aula, iremos relembrar os itens aprendidos na aula anterior:
+Conhecemos e aplicamos o conceito de renderização condicional;
+Implementamos estilização condicional;
+Organizamos o projeto e sua arquitetura de pastas;
+Realizamos a subdivisão de componentes maiores;
+Aprendemos a parametrizar dados entre componentes de filho p/ pais e vice-versa;
+Observamos brevemente algumas utilidades do React Developer Tools;
+Dito isto, vamos dar sequência com algumas funcionalidades interessantes para a nossa aplicação.
+
+
+Integração de dados
+
+Toda aplicação React, que realiza a comunicação e transferência de dados de forma dinâmica entre plataformas, necessita fazer a integração com uma aplicação backend carinhosamente chamada de API.
+Atualmente estamos utilizando o arquivo paletas.js para fazer a renderização de conteúdo e ser exibido em nossa aplicação. Mas precisamos fazer a conexão entre sistemas para que isso seja realizado de forma dinâmica.
+Considerando o conhecimento e construção prévia do backend desenvolvido ao decorrer do curso, iremos realizar a integração através de serviços para utilizar esses dados.
+
+API helper
+
+Antes de qualquer coisa, sabemos que para realizar as integrações e chamadas para a API são necessárias diferentes URL's*, para a obtenção de dados, que ao decorrer do desenvolvimento do projeto podem ser alteradas, sendo desta maneira necessário cuidado e centralização destas URL's em um único lugar/arquivo da aplicação, para possibilitar facilidade de manutenção e evitar a repetição de edição do mesmo dado
+
+* URL (Uniform Resource Locator) é a forma padronizada de representação de diferentes documentos, mídia e serviços de rede na internet, capaz de fornecer a cada documento um endereço único.
+
+Sendo assim, precisamos de um helper* que fará a centralização e gerenciamento de URL's da aplicação. Se chamará Api.js e será adicionado dentro de uma nova pasta chamada helpers dentro de src:
+
+* helpers são métodos recomendados a serem utilizados quando é necessário realizar a mesma tarefa em várias páginas da mesma aplicação. Esses métodos especiais permitem a utilização de um bloco comum de código entre diferentes arquivos
+
+Observe que o objeto Api retorna funções que farão a composição do endereço/recurso desejado a ser utilizado nas requisições HTTP*.
+* HTTP Hypertext Transfer Protocol (Protocolo de transferência de Hipertexto) é um protocolo cliente-servidor para obtenção de recursos/arquivos.
+Atualmente este arquivo possui os endereços de:
+
+ baseUrl: URL Base da da aplicação, ou seja, o endereço principal de onde será executado o serviço de API/ Back end, neste caso a aplicação a ser usada para demonstrar seu uso será executada na porta 4000;
+
+paletaEndpoint: Função utilizada para separar o recurso e módulo de paletas dentro da API.
+
+paletaLista: Retorna a coleção de paletas a serem renderizadas em tela;
+
+paletaById: Retorna uma única paleta especificada por sua propriedade id;
+
+createPaleta: Adiciona uma nova paleta à coleção de dados já existente, através da API;
+
+updatePaletaById: Atualiza uma paleta existente especificada por sua propriedade id e
+
+Estes endereços e funcionalidades serão implementados gradativamente em nosso projeto.
+
+
+Criação de serviço
+
+
+Agora que temos um gerenciador para todos os endereços de requisição para a integração das aplicações, podemos criar o serviço PaletaService.js dentro de uma nova pasta de services a ser incluída em src, o qual ficará responsável pela execução das requisições de API referente às Paletas:
+
+import { Api } from "helpers/Api";
+​
+const parseResponse = (response) => response.json();
+​
+export const PaletaService = {
+  getLista: () =>
+    fetch(Api.paletaLista(), { method: "GET" }).then(parseResponse),
+  getById: (id) =>
+    fetch(Api.paletaById(id), { method: "GET" }).then(parseResponse),
+  create: () =>
+    fetch(Api.createPaleta(), { method: "POST" }).then(parseResponse),
+  updateById: (id) =>
+    fetch(Api.updatePaletaById(id), { method: "PUT" }).then(parseResponse),
+  deleteById: (id) =>
+    fetch(Api.deletePaletaById(id), { method: "DELETE" }).then(parseResponse),
+};
+
+Para realizar as requests estamos utilizando o método global fetch que nos devolve uma Promise* e realizamos o parse da resposta para json.
+
+* Promise é um objeto usado para processamento assíncrono. Um Promise (em português "promessa") representa um valor que pode estar disponível agora, no futuro ou nunca.
+
+Serviço criado, agora é necessário realizar a integração entre os dados da requisição e a interface de usuário.
+
+Implementação da integração
 
 
 
