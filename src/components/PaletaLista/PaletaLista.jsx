@@ -56,13 +56,13 @@ const getLista = async () => {
   const response = await PaletaService.getLista();
   setPaletas(response);// fazendo a conexão com a api e esperar a lista de paletas ser retornada armazena essa lista de paletas dentro dessa constate response e envia para o useState
 
-
+};
 //USEEFFECT ele tem 2 parametros o primeiro é uma função e o segundo uma array
   useEffect(() => { // o primeiro parametro é nosso getLista
     getLista();// o segundo um array vazio e ele é obg se não fica em um loop infinito
   }, []);// no momento que ele for renderizado na tela ele ativa o getLista e 
 
-};
+
 
   //a função de cima precisa ser antes do return de baixo
   return (
