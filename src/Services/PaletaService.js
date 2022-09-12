@@ -1,11 +1,32 @@
 
-import { Api } from "helpers/Api";
+import { Api } from "Helpers/Api";
 
 const parseResponse = (response) => response.json();//pega toda resposta da req vira json
 
+const transformPaleta = (paleta) => {
+  const [sabor, recheio] = paleta.sabor.split(" com ");// função splite quebra uma string
+  // a propriedade recheio so vai ser criada se estiver a estrutura 'com'
+
+  return {
+    ...paleta,
+    id: paleta._id,// id que vem da api
+    titulo: paleta.sabor,
+    sabor,
+    ...(recheio && { recheio }),
+    possuiRecheio: Boolean(recheio),
+  };
+};
+
+
+//faz a junçao so parseResponse com o obj transforme paleta que foi criado antes
+const parseTransformLista = (response) =>
+  parseResponse(response).then((paletas) => paletas.map(transformPaleta));// o map faz um mapeamento de todos os dados que estão vindo
+
+
+
 export const PaletaService = {
   getLista: () =>
-    fetch(Api.paletaLista(), { method: "GET" }).then(parseResponse),
+    fetch(Api.paletaLista(), { method: "GET" }).then(parseTransformLista),
   getById: (id) =>
     fetch(Api.paletaById(id), { method: "GET" }).then(parseResponse),
   create: () =>

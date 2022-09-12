@@ -1970,6 +1970,653 @@ Serviço criado, agora é necessário realizar a integração entre os dados da 
 
 Implementação da integração
 
+Para realizar integração certifique-se de que o projeto de backend esteja em execução, que a conexão com o banco de dados esteja funcionando e que existam paletas disponíveis no banco para compor a nossa aplicação.
+
+Consideramos para esta etapa o aprendizado e acompanhamento das aulas anteriores de backend que serão fundamentais para realizar o processo de integração.
+Vamos iniciar REMOVENDO o import das paletas utilizadas para mock no arquivo PaletaLista.jsx em src/components, no caso esta linha:
+
+
+import { paletas } from "mocks/paletas.js";
+
+Em seguida obteremos alguns erros no console do navegador e no terminal de execução da aplicação:
+
+Mas não se preocupe, é fácil de corrigir e pode ser feito adicionando uma constante chamada paletas dentro do escopo do componente recebendo um array vazio, porém já irei demonstrar o exemplo utilizando o hook useState, pois iremos atualizar essa variável com os dados da requisição para a API e isso deve refletir como atualização na view:
+
+function PaletaLista() {
+​
+        {/* NOVO TRECHO */}
+        const [paletas, setPaletas] = useState([]);
+        {/* FIM DO NOVO TRECHO */}
+​
+        const [paletaSelecionada, setPaletaSelecionada] = useState({});
+…
+
+Logo nosso terminal voltará a executar a aplicação:
+
+Porém em nosso browser teremos um cardápio completamente vazio:
+
+É nesse momento que entra a inclusão das chamadas/requisição de dados para a API.
+
+Adicione o import do service:
+
+import { PaletaService } from "services/PaletaService";
+
+Crie uma função assíncrona dentro do escopo do componente PaletaLista.jsx chamada getLista:
+
+const getLista = async () => {
+  const response = await PaletaService.getLista();
+  setPaletas(response);
+};
+
+Note que para chamar uma função assíncrona é necessário adicionar o prefixo async antes de sua declaração e o prefixo await onde a execução em sequência do método atual será esperada até que haja o retorno do dado desejado pelo serviço assíncrono.
+Como este método não pode ser executado sem ser chamado, é necessário adicionarmos ele no fluxo do ciclo de vida de renderização do componente, neste caso estamos usando componentes funcionais e uma forma de realizar isso é utilizando o hook useEffect dentro do escopo do componente PaletaLista.jsx:
+
+useEffect(() => {
+  getLista();
+}, []);
+
+* Usando o hook useEffect informamos ao React que o componente precisa executar algo apenas após sua renderização. O React irá se encarregar de chamar a função passada a ele depois de realizar as atualizações do DOM.
+
+Observe que como segundo parâmetro passamos um array vazio e é importante informar este parâmetro ao useEffect pois sem ele a aplicação entraria em looping infinito, dado que sempre que há uma atualização em um hook de useState que faz alterações no template/ view será acionado o hook de useEffect, que neste caso fará a chamada da requisição de dados para a API e assim por diante.
+
+Para normalizarmos as instruções passadas com os arquivos manipulados, segue um exemplo de como ficou o arquivo PaletaLista.jsx
+
+import "./PaletaLista.css";
+import { useState, useEffect } from "react";
+import PaletaListaItem from "components/PaletaListaItem/PaletaListaItem";
+import { PaletaService } from "services/PaletaService";
+​
+function PaletaLista() {
+  const [paletas, setPaletas] = useState([]);
+​
+  const [paletaSelecionada, setPaletaSelecionada] = useState({});
+​
+  const adicionarItem = (paletaIndex) => {
+    const paleta = {
+      [paletaIndex]: (paletaSelecionada[paletaIndex] || 0) + 1,
+    };
+    setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+  };
+​
+  const removerItem = (paletaIndex) => {
+    const paleta = {
+      [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) - 1,
+    };
+    setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+  };
+​
+  const getLista = async () => {
+    const response = await PaletaService.getLista();
+    setPaletas(response);
+  };
+​
+  useEffect(() => {
+    getLista();
+  }, []);
+​
+  return (
+    <div className="PaletaLista">
+      {paletas.map((paleta, index) => (
+        <PaletaListaItem
+          key={`PaletaListaItem-${index}`}
+          paleta={paleta}
+          quantidadeSelecionada={paletaSelecionada[index]}
+          index={index}
+          onAdd={(index) => adicionarItem(index)}
+          onRemove={(index) => removerItem(index)}
+        />
+      ))}
+    </div>
+  );
+}
+​
+export default PaletaLista;
+Será visualizado algo semelhante a imagem:
+
+
+Alguns dados estão aparecendo, algumas informações estão faltando e isso é comum de toda integração entre sistemas, já que preparamos nosso componente PaletaListaItem.jsx para receber título, preco, descricao, foto e sabor, mas a API nos retorna um objeto com _id, descricao, foto, preco e sabor.
+Logo percebemos que não temos o título e que também é necessário ajustar a renderização das imagens.
+Para resolver esses problemas é comum utilizarmos uma função auxiliar que fará o mapeamento dos dados advindos da API e estruturar em um formato utilizado na aplicação Frontend. Não é a solução ideal, pois tem custo de processamento, mas evita alterações nos projetos e cria uma camada de proteção e prevenção de erros.
+
+Mapeamento de dados
+
+Crie no arquivo PaletaService.js as funções, que substituirão o parseResponse na requisição de obtenção da lista e mapeamento de estrutura de dados, chamadas transformPaleta e parseTransformLista respectivamente:
+
+const transformPaleta = (paleta) => {
+  const [sabor, recheio] = paleta.sabor.split(" com ");
+​
+  return {
+    ...paleta,
+    id: paleta._id,
+    titulo: paleta.sabor,
+    sabor,
+    ...(recheio && { recheio }),
+    possuiRecheio: Boolean(recheio),
+  };
+};
+​
+const parseTransformLista = (response) =>
+  parseResponse(response).then((paletas) => paletas.map(transformPaleta));
+
+
+A função transformPaleta faz o mapeamento descrito anteriormente, criando um objeto compatível com o componente atual. Note que a propriedade recheio só é criada se a paleta realmente tem em seu título uma descrição após a preposição "com", que é usada para realizar a separação entre recheio e sabor permitindo a adição de novas propriedades que futuramente utilizaremos para manipular filtros.
+Já a função parseTransformLista é a junção de parseResponse e transformPaleta. Lembre-se de substituir parseResponse por parseTransformLista dentro do método getLista:
+
+
+getLista: () => fetch(Api.paletaLista(), { method: "GET" }).then(parseTransformLista),
+
+
+A título de esclarecimentos, vamos exibir como ficou o arquivo PaletaService.js:
+
+
+import { Api } from "helpers/Api";
+​
+const parseResponse = (response) => response.json();
+​
+const transformPaleta = (paleta) => {
+  const [sabor, recheio] = paleta.sabor.split(" com ");
+​
+  return {
+    ...paleta,
+    id: paleta._id,
+    titulo: paleta.sabor,
+    sabor,
+    ...(recheio && { recheio }),
+    possuiRecheio: Boolean(recheio),
+  };
+};
+​
+const parseTransformLista = (response) =>
+  parseResponse(response).then((paletas) => paletas.map(transformPaleta));
+​
+export const PaletaService = {
+  getLista: () =>
+    fetch(Api.paletaLista(), { method: "GET" }).then(parseTransformLista),
+  getById: (id) =>
+    fetch(Api.paletaById(id), { method: "GET" }).then(parseResponse),
+  create: () =>
+    fetch(Api.createPaleta(), { method: "POST" }).then(parseResponse),
+  updateById: (id) =>
+    fetch(Api.updatePaletaById(id), { method: "PUT" }).then(parseResponse),
+  deleteById: (id) =>
+    fetch(Api.deletePaletaById(id), { method: "DELETE" }).then(parseResponse),
+    };
+
+    Nossa aplicação no browser parece ter agora todas as suas propriedades em seus devidos lugares:
+
+
+Exceto pelas imagens.
+Mas o que está ocorrendo para haver essa divergência? Isso será explicado no tópico seguinte.
+Estrutura e funcionamento de assets
+As imagens e assets que ficam disponibilizados dentro da pasta src fazem parte da aplicação e necessitam ser compilados previamente à sua execução.
+Quando escolhemos criar o arquivo paletas.js em src/mocks, consideramos que as informações fariam parte da aplicação e os endereços de imagem das paletas seriam fixos, diferente do que acontece no formato de espera da resposta e entrega dos dados pela API que é executada após a renderização e compilação da aplicação, trazendo endereços dinâmicos.
+Desta maneira não há como acessar em tempo de execução arquivos com endereços no contexto 
+
+fonte da aplicação, mas é possível se eles estiverem disponibilizados de forma pública.
+A real necessidade do projeto é conter as imagens dinâmicas fora da aplicação, ou seja, dados mutáveis e manipuláveis por fontes externas devem ser armazenados e distribuídos em serviços externos, porém para fins didáticos utilizaremos as imagens dentro do projeto, de forma a simular que as URL's devolvidas pela API no atributo foto.
+Mas como fazer isso? Simples, apenas moveremos a pasta imagens para uma nova pasta chamada assets que criaremos dentro da pasta public na raíz do projeto:
+
+
+
+Assim ficou a pasta src:
+
+
+Note que só de realizar essa transferência de imagens entre pastas o projeto volta a funcionar como anteriormente:
+
+
+Para evitarmos confusões futuras, vamos aproveitar e ajustar também o arquivo src/mocks/paletas.js:
+
+
+export const paletas = [
+  {
+    titulo: "Açaí com Leite Condensado",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/acai-com-leite-condensado.png",
+    preco: 10.0,
+    sabor: "Açaí",
+    recheio: "Leite Condensado",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Banana com Nutella",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/banana-com-nutella.png",
+    preco: 10.0,
+    sabor: "Banana",
+    recheio: "Nutella",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Chocolate Belga",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/chocolate-belga.png",
+    preco: 7.0,
+    sabor: "Chocolate Belga",
+    possuiRecheio: false,
+  },
+  {
+    titulo: "Chocolate Belga com Brigadeiro",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/chocolate-belga-com-brigadeiro.png",
+    preco: 10.0,
+    sabor: "Chocolate Belga",
+    recheio: "Brigadeiro",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Chocolate Branco",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/chocolate-branco.png",
+    preco: 7.0,
+    sabor: "Chocolate Branco",
+    possuiRecheio: false,
+  },
+  {
+    titulo: "Coco",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/coco.png",
+    preco: 7.0,
+    sabor: "Coco",
+    possuiRecheio: false,
+  },
+  {
+    titulo: "Coco com Doce de Leite",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/coco-com-doce-de-leite.png",
+    preco: 10.0,
+    sabor: "Coco",
+    recheio: "Doce de Leite",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Cookies",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/cookies.png",
+    preco: 7.0,
+    sabor: "Cookies",
+    possuiRecheio: false,
+  },
+  {
+    titulo: "Doce de Leite com Doce de Leite",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/doce-de-leite-com-doce-de-leite.png",
+    preco: 10.0,
+    sabor: "Doce de Leite",
+    recheio: "Doce de Leite",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Limão",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/limao.png",
+    preco: 7.0,
+    sabor: "Limão",
+    possuiRecheio: false,
+  },
+  {
+    titulo: "Maracujá",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/maracuja.png",
+    preco: 7.0,
+    sabor: "Maracujá",
+    possuiRecheio: false,
+  },
+  {
+    titulo: "Maracujá com Leite Condensado",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/maracuja-com-leite-condensado.png",
+    preco: 10.0,
+    sabor: "Maracujá",
+    recheio: "Leite Condensado",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Milho Verde",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/milho-verde.png",
+    preco: 7.0,
+    sabor: "Milho Verde",
+    possuiRecheio: false,
+  },
+  {
+    titulo: "Morango",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/morango.png",
+    preco: 7.0,
+    sabor: "Morango",
+    possuiRecheio: false,
+  },
+  {
+    titulo: "Morango com Leite Condensado",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/morango-com-leite-condensado.png",
+    preco: 10.0,
+    sabor: "Morango",
+    recheio: "Leite Condensado",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Morango com Nutella",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/morango-com-nutella.png",
+    preco: 10.0,
+    sabor: "Morango",
+    recheio: "Nutella",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Ninho com Nutella",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/ninho-com-nutella.png",
+    preco: 10.0,
+    sabor: "Ninho",
+    recheio: "Nutella",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Ninho com Ovomaltine",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/ninho-com-ovomaltine.png",
+    preco: 10.0,
+    sabor: "Ninho",
+    recheio: "Ovomaltine",
+    possuiRecheio: true,
+  },
+  {
+    titulo: "Uva",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/uva.png",
+    preco: 7.0,
+    sabor: "Uva",
+    possuiRecheio: false,
+  },
+];
+
+
+Agora que finalizamos a integração de sistemas e realizamos seus devidos ajustes, vamos dar sequência com a implementação de uma requisição parametrizável para obter detalhes de um único item.
+Mas antes é necessário adicionar a estrutura que receberá esses dados. Vamos criar um modal.
+
+Criação de modal
+
+
+Antes de prosseguir é interessante dar os esclarecimentos técnicos sobre a palavra modal:
+Modal é basicamente uma janela que abre sobre o conteúdo da página sem se desfazer dele. É utilizado com o intuito de passar algum aviso ou informação extra para dar suporte ao conteúdo da página principal.
+Conhecimento passado, vamos iniciar com a criação dos arquivos necessários para deixá-lo dinâmico.
+Para dar início é necessário entender que o modal se sobrepõe acima da camada chamada overlay que, por sua vez é uma sobreposição sobre a janela de conteúdo principal parece confuso, mas na prática é bem simples. Assim vamos começar criando o componente e sua folha de estilos, respectivamente Overlay.jsx e Overlay.css, dentro de uma nova pasta Overlay para gerenciar seu conteúdo em src/components. A seguir será exibido o arquivo Overlay.jsx:
+
+Para este componente é necessário que ele seja genérico, afinal pode ser utilizado por inúmeros outros componentes que não só o modal como uma barra lateral etc. Desta maneira, obtemos um click a ser emitido na propriedade overlayClick e um componente filho na propriedade children.
+Não podemos esquecer também da folha de estilos Overlay.css:
+
+Não é necessário adicionar este componente sobre a aplicação ainda, mas se você adicionar terá algo como
+
+Com a primeira dependência criada, agora podemos partir para a criação da estrutura de modal que, por sua vez, também será genérico para ser reutilizado na aplicação.
+Crie o componente e sua folha de estilos, respectivamente Modal.jsx e Modal.css, dentro de uma nova pasta Modal para gerenciar seu conteúdo em src/components. A seguir será exibido o arquivo Modal.jsx
+
+import "./Modal.css";
+import Overlay from "components/Overlay/Overlay";
+​
+function Modal({ children, closeModal }) {
+  const handleClick = (e, canClose) => {
+    e.stopPropagation();
+    if (canClose) closeModal();
+  };
+​
+  return (
+    <Overlay overlayClick={closeModal}>
+      <div className="Modal" onClick={handleClick}>
+        <span className="Modal__close" onClick={(e) => handleClick(e, true)}>
+          +
+        </span>
+        <div className="Modal__body">{children}</div>
+      </div>
+    </Overlay>
+  );
+}
+​
+export default Modal;
+
+Também é necessário que ele seja genérico, afinal pode ser utilizado para diferentes finalidades e contextos. Desta maneira, obtemos um click a ser emitido na propriedade closeModal e um componente filho na propriedade children.
+Nele também contém uma função que faz o gerenciamento dos eventos de click, para evitar o efeito de event bubbling.
+* Event bubbling relaciona-se com a ordem na qual os manipuladores de eventos são chamados quando um elemento está aninhado dentro de um segundo elemento e ambos os elementos registram um ouvinte para o mesmo evento, como o de clique.
+Não podemos esquecer também da folha de estilos Modal.css:
+
+.Modal {
+  padding: 30px 80px 20px 20px;
+  min-width: 300px;
+  min-height: 200px;
+  max-width: 700px;
+  max-height: 450px;
+  background: #50c5ee;
+  position: relative;
+  border-radius: 10px;
+  box-sizing: border-box;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.6);
+}
+​
+.Modal__close {
+  font-size: 2em;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  color: white;
+  transform: rotate(45deg);
+  transition: all 1s;
+  background-color: rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+​
+.Modal__close:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+​
+.Modal__body {
+  border-radius: 10px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+​
+@media (max-width: 400px) {
+  .Modal {
+    padding: 15px 70px 15px 15px;
+  }
+}
+
+
+
+Como citado anteriormente, não é necessário adicionar este componente na aplicação ainda, mas se você adicionar terá algo como:
+
+
+Agora poderemos criar o componente de conteúdo que receberá uma única paleta da requisição detalhada por id.
+O componente será PaletaDetalhesModal com seu arquivo de lógica PaletaDetalhesModal.jsx e seu arquivo de estilo PaletaDetalhesModal.css dentro da nova pasta PaletaDetalhesModal a ser criada em src/components.
+Para idealizar o layout podemos utilizar uma constante auxiliar contendo as informações de uma paleta e utilizar seus dados para realizar o processo de data binding no template, mas lembre-se de deletar posteriormente a criação do componente.
+
+
+const paleta = {
+  titulo: "Açaí com Leite Condensado",
+  descricao: "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+  foto: "assets/images/acai-com-leite-condensado.png",
+  preco: 10.0,
+  sabor: "Açaí",
+  recheio: "Leite Condensado",
+  possuiRecheio: true,
+}
+
+Como as demonstrações seguintes consistem na estruturação de componentes ensinados nas aulas anteriores, serão apresentados os arquivos dos componentes e sua respectiva aparência como aplicação renderizada no navegador.
+Conteúdo do arquivo PaletaDetalhesModal.jsx:
+
+Conteúdo do arquivo PaletaDetalhesModal.jsx:
+import "./PaletaDetalhesModal.css";
+import Modal from "components/Modal/Modal";
+​
+function PaletaDetalhesModal({ paleta, closeModal }) {
+  return (
+    <Modal closeModal={closeModal}>
+      <div className="PaletaDetalhesModal">
+        <div>
+          <div className="PaletaDetalhesModal__titulo"> {paleta.titulo} </div>
+          <div className="PaletaDetalhesModal__preco">
+            {" "}
+            R$ {Number(paleta.preco).toFixed(2)}{" "}
+          </div>
+          <div className="PaletaDetalhesModal__descricao">
+            {" "}
+            <b>Sabor:</b> {paleta.sabor}{" "}
+          </div>
+          {paleta.recheio && (
+            <div className="PaletaDetalhesModal__descricao">
+              {" "}
+              <b>Recheio:</b> {paleta.recheio}{" "}
+            </div>
+          )}
+          <div className="PaletaDetalhesModal__descricao">
+            {" "}
+            <b>Descrição:</b> {paleta.descricao}{" "}
+          </div>
+        </div>
+        <img
+          className="PaletaDetalhesModal__foto"
+          src={paleta.foto}
+          alt={`Paleta de ${paleta.sabor}`}
+        />
+      </div>
+    </Modal>
+  );
+}
+​
+export default PaletaDetalhesModal;
+
+
+Note que o componente PaletaDetalhesModal importa e faz uso do componente Modal que, por sua vez, também faz uso da camada de Overlay. Desta forma temos funcionalidades básicas customizáveis e reutilizáveis para todo o projeto.
+A seguir sua respectiva folha de estilos PaletaDetalhesModal.css:
+
+
+Para visualizar a aparência da aplicação podemos importar e adicionar o componente PaletaDetalhesModal em nosso componente PaletaLista, lembrando de utilizar a constante auxiliar paleta demonstrada anteriormente
+
+PaletaDetalhesModal em nosso componente PaletaLista, lembrando de utilizar a constante auxiliar paleta demonstrada anteriormente:
+import "./PaletaLista.css";
+import { useState, useEffect } from "react";
+import PaletaListaItem from "components/PaletaListaItem/PaletaListaItem";
+import { PaletaService } from "services/PaletaService";
+​
+{ /* NOVO TRECHO */ }
+import PaletaDetalhesModal from "components/PaletaDetalhesModal/PaletaDetalhesModal";
+{ /* FIM DO NOVO TRECHO */ }
+​
+function PaletaLista() {
+  const [paletas, setPaletas] = useState([]);
+​
+  const [paletaSelecionada, setPaletaSelecionada] = useState({});
+​
+  { /* NOVO TRECHO */ }
+  const paleta = {
+    titulo: "Açaí com Leite Condensado",
+    descricao:
+      "Quam vulputate dignissim suspendisse in est ante in nibh mauris.",
+    foto: "assets/images/acai-com-leite-condensado.png",
+    preco: 10.0,
+    sabor: "Açaí",
+    recheio: "Leite Condensado",
+    possuiRecheio: true,
+  };
+  { /* FIM DO NOVO TRECHO */ }
+​
+  const adicionarItem = (paletaIndex) => {
+    const paleta = {
+      [paletaIndex]: (paletaSelecionada[paletaIndex] || 0) + 1,
+    };
+    setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+  };
+​
+  const removerItem = (paletaIndex) => {
+    const paleta = {
+      [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) - 1,
+    };
+    setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+  };
+​
+  const getLista = async () => {
+    const response = await PaletaService.getLista();
+    setPaletas(response);
+  };
+​
+  useEffect(() => {
+    getLista();
+  }, []);
+​
+  return (
+    <div className="PaletaLista">
+      {paletas.map((paleta, index) => (
+        <PaletaListaItem
+          key={`PaletaListaItem-${index}`}
+          paleta={paleta}
+          quantidadeSelecionada={paletaSelecionada[index]}
+          index={index}
+          onAdd={(index) => adicionarItem(index)}
+          onRemove={(index) => removerItem(index)}
+        />
+      ))}
+​
+      {/* NOVO TRECHO */}
+      <PaletaDetalhesModal paleta={paleta} />
+      {/* FIM DO NOVO TRECHO */}
+    </div>
+  );
+}
+​
+export default PaletaLista;
+
+
+Com o seguinte resultado:
+
+
+A partir deste ponto poderemos realizar o mecanismo de abertura e fechamento do modal.
+Conseguiremos este feito com a implementação do já conhecido hook de useState do React e nele iremos transitar entre o valor booleano false e a própria paleta a ser exibida, desta forma eliminamos a necessidade de controlar somente a abertura e fechamento como também o conteúdo que deve ser passado e exibido dentro do modal.
+Adicione o hook de useState dentro do escopo do componente PaletaLista recebendo as propriedades paletaModal e a função setPaletaModal:
+const [paletaModal, setPaletaModal] = useState(false);
+Lembre-se de inicializar com o valor false.
+Logo em seguida já podemos substituir o trecho em PaletaLista onde está presente o componente PaletaDetalhesModal pela renderização condicional e passagem de dados com base na constante paletaModal e o mecanismo de fechamento do modal com base no evento closeModal atribuindo em setPaletaModal o valor false.
+Também já é possível remover a constante paleta utilizada para idealizar a renderização do layout.
+Substitua:
+
+
+<PaletaDetalhesModal paleta={paleta} />
+
+Por:
+
+
+{paletaModal && <PaletaDetalhesModal paleta={paletaModal} closeModal={() => setPaletaModal(false)} />}
+
+Configurações finais do Modal
 
 
 
