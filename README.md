@@ -2620,4 +2620,224 @@ Configurações finais do Modal
 
 
 
+Apesar de implementado a funcionalidade de fechar atualmente não temos como abrir o modal. É necessário implementar um evento de click sobre cada item renderizado na lista.
+Para conseguirmos esse feito vamos adicionar no arquivo PaletaListaItem.jsx as alterações necessárias para a emissão/passagem de informações de um componente filho para um componente pai. Neste caso iremos adicionar como parâmetro desconstruído na assinatura de método do componente a propriedade clickItem para realizar essa função e em seguida adicionar o evento de onClick no elemento HTML raiz deste componente emitindo para o componente pai a propriedade de id da paleta para ser buscada de forma unitária e apresentada no modal.
+Mas como neste card existem botões realizando a chamada de funções, precisamos adicionar nestes clicks a recepção do evento de mouse e execução da função stopPropagation() como forma de prevenir e evitar o efeito de event bubbling, caso contrário, todo click nestes botões acionariam também a emissão da passagem de dados/evento de clickItem que para nosso objetivo servirá de gatilho para a chamada de dados da API e consequentemente a abertura do modal.
+Assim obteremos a seguinte estrutura em PaletaListaItem.jsx:
+
+
+
+import "./PaletaListaItem.css";
+​
+function PaletaListaItem({
+  paleta,
+  quantidadeSelecionada,
+  index,
+  onRemove,
+  onAdd,
+  clickItem,
+}) {
+  const removeButton = (canRender, index) =>
+    Boolean(canRender) && (
+      <button
+        className="Acoes__remover"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(index);
+        }}
+      >
+        remover
+      </button>
+    );
+​
+  const badgeCounter = (canRender) =>
+    Boolean(canRender) && (
+      <span className="PaletaListaItem__badge"> {quantidadeSelecionada} </span>
+    );
+​
+  return (
+    <div className="PaletaListaItem" onClick={() => clickItem(paleta.id)}>
+      {badgeCounter(quantidadeSelecionada, index)}
+      <div>
+        <div className="PaletaListaItem__titulo"> {paleta.titulo} </div>
+        <div className="PaletaListaItem__preco"> R$ {paleta.preco.toFixed(2)} </div>
+        <div className="PaletaListaItem__descricao"> {paleta.descricao} </div>
+        <div className="PaletaListaItem__acoes Acoes">
+          <button
+            className={`Acoes__adicionar ${ !quantidadeSelecionada && "Acoes__adicionar--preencher" }`}
+            onClick={(e) => { e.stopPropagation(); onAdd(index); }} >
+            adicionar
+          </button>
+          {removeButton(quantidadeSelecionada, index)}
+        </div>
+      </div>
+      <img
+        className="PaletaListaItem__foto"
+        src={paleta.foto}
+        alt={`Paleta de ${paleta.sabor}`}
+      />
+    </div>
+  );
+}
+​
+export default PaletaListaItem;
+
+
+Como agora o componente PaletaListaItem é um elemento clicável precisamos adicionar em PaletaListaItem.css a alteração de estilo do cursor:
+
+…
+.PaletaListaItem {
+  cursor: pointer;
+…
+
+Para finalizar precisamos atribuir a abertura do modal ao evento de clickItem com a função setPaletaModal passando a constante paleta no arquivo PaletaLista.jsx:
+
+{
+  paletas.map((paleta, index) => (
+    <PaletaListaItem
+      key={`PaletaListaItem-${index}`}
+      paleta={paleta}
+      quantidadeSelecionada={paletaSelecionada[index]}
+      index={index}
+      onAdd={(index) => adicionarItem(index)}
+      onRemove={(index) => removerItem(index)}
+      clickItem={(paletaId) => setPaletaModal(paleta)}
+    />
+  ));
+}
+
+Obteremos o seguinte resultado:
+
+
+Apesar de estar funcional é interessante implementarmos a integração com o Backend buscando uma paleta por id, que em certos casos podem apresentar informações divergentes, já que em uma lista é necessário exibir menos informações que a visão detalhada.
+
+Integração por id
+
+
+A requisição por id normalmente é utilizada para obter mais detalhes de um item, no nosso caso será utilizado de forma didática para fins de implementação.
+Iniciando pela substituição de um parseResponse por uma nova função chamada parseTransformItem fazendo a junção da função que fará a manipulação da resposta com o mapeamento de dados no arquivo PaletaService.js
+
+import { Api } from "helpers/Api";
+​
+const parseResponse = (response) => response.json();
+​
+const transformPaleta = (paleta) => {
+  const [sabor, recheio] = paleta.sabor.split(" com ");
+​
+  return {
+    ...paleta,
+    id: paleta._id,
+    titulo: paleta.sabor,
+    sabor,
+    ...(recheio && { recheio }),
+    possuiRecheio: Boolean(recheio),
+  };
+};
+
+
+const parseTransformLista = (response) => parseResponse(response).then(paletas => paletas.map(transformPaleta));
+​
+{/* NOVO TRECHO */}
+const parseTransformItem = (response) => parseResponse(response).then(transformPaleta);
+{/* FIM DO NOVO TRECHO */}
+​
+export const PaletaService = {
+  getLista: () => fetch(Api.paletaLista(), { method: "GET" }).then(parseTransformLista),
+​
+  {/* NOVO TRECHO */}
+  getById: (id) => fetch(Api.paletaById(id), { method: "GET" }).then(parseTransformItem),
+  {/* FIM DO NOVO TRECHO */}
+​
+  create: () => fetch(Api.createPaleta(), { method: "POST" }).then(parseResponse),
+  updateById: (id) => fetch(Api.updatePaletaById(id), { method: "PUT" }).then(parseResponse),
+  deleteById: (id) => fetch(Api.deletePaletaById(id), { method: "DELETE" }).then(parseResponse),
+};
+
+
+
+Serviço preparado, agora nos resta implementar a função do service no componente.
+Inicie com a adição da função assíncrona getPaletaById que, após a requisição, atribuirá a resposta à constante paletaModal dentro do escopo do componente no arquivo PaletaLista.jsx:
+const getPaletaById = async (paletaId) => {
+  const response = await PaletaService.getById(paletaId);
+  setPaletaModal(response);
+};
+Em sequência poderemos editar o escopo da propriedade clickItem no componente PaletaListaItem, para realizar a requisição da função getPaletaById, dentro do arquivo PaletaLista.js:
+{
+  paletas.map((paleta, index) => (
+    <PaletaListaItem
+      key={`PaletaListaItem-${index}`}
+      paleta={paleta}
+      quantidadeSelecionada={paletaSelecionada[index]}
+      index={index}
+      onAdd={(index) => adicionarItem(index)}
+      onRemove={(index) => removerItem(index)}
+      clickItem={(paletaId) => getPaletaById(paletaId)}
+    />
+  ));
+}
+A título de esclarecimentos, vamos exibir como ficou o arquivo PaletaLista.jsx:
+import "./PaletaLista.css";
+import { useState, useEffect } from "react";
+import PaletaListaItem from "components/PaletaListaItem/PaletaListaItem";
+import { PaletaService } from "services/PaletaService";
+import PaletaDetalhesModal from "components/PaletaDetalhesModal/PaletaDetalhesModal";
+​
+function PaletaLista() {
+  const [paletas, setPaletas] = useState([]);
+​
+  const [paletaSelecionada, setPaletaSelecionada] = useState({});
+​
+  const [paletaModal, setPaletaModal] = useState(false);
+​
+  const adicionarItem = (paletaIndex) => {
+    const paleta = {
+      [paletaIndex]: (paletaSelecionada[paletaIndex] || 0) + 1,
+    };
+    setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+  };
+​
+  const removerItem = (paletaIndex) => {
+    const paleta = {
+      [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) - 1,
+    };
+    setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+  };
+​
+  const getLista = async () => {
+    const response = await PaletaService.getLista();
+    setPaletas(response);
+  };
+​
+  const getPaletaById = async (paletaId) => {
+    const response = await PaletaService.getById(paletaId);
+    setPaletaModal(response);
+  };
+​
+  useEffect(() => {
+    getLista();
+  }, []);
+​
+  return (
+    <div className="PaletaLista">
+      {paletas.map((paleta, index) => (
+        <PaletaListaItem
+          key={`PaletaListaItem-${index}`}
+          paleta={paleta}
+          quantidadeSelecionada={paletaSelecionada[index]}
+          index={index}
+          onAdd={(index) => adicionarItem(index)}
+          onRemove={(index) => removerItem(index)}
+          clickItem={(paletaId) => getPaletaById(paletaId)}
+        />
+      ))}
+      {paletaModal && ( <PaletaDetalhesModal paleta={paletaModal} closeModal={() => setPaletaModal(false)} />)}
+    </div>
+  );
+}
+​
+export default PaletaLista;
+E por último, mas não menos importante, a exibição do resultado no navegador:
+
+
+
 

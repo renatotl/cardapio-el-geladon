@@ -57,6 +57,13 @@ const getLista = async () => {
   setPaletas(response);// fazendo a conexão com a api e esperar a lista de paletas ser retornada armazena essa lista de paletas dentro dessa constate response e envia para o useState
 
 };
+
+const getPaletaById = async (paletaId) => {
+  const response = await PaletaService.getById(paletaId);
+  setPaletaModal(response);
+};
+
+
 //USEEFFECT ele tem 2 parametros o primeiro é uma função e o segundo uma array
   useEffect(() => { // o primeiro parametro é nosso getLista
     getLista();// o segundo um array vazio e ele é obg se não fica em um loop infinito
@@ -77,6 +84,7 @@ const getLista = async () => {
         index={index} 
         onAdd={index => adicionarItem(index)}
 			  onRemove={index => removerItem(index)} 
+        clickItem={(paletaId) => getPaletaById(paletaId)}
       />
       ))}
 {paletaModal && <PaletaDetalhesModal paleta={paletaModal} closeModal={() => setPaletaModal(false)} />}
