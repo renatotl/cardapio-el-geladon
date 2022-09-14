@@ -2,6 +2,7 @@ import "./Home.css"; // trazendo o arquivo estilizado pra cá
 import PaletaLista from "components/PaletaLista/PaletaLista";
 import NavBar from "components/NavBar/NavBar"
 import "./Home.css"
+import AdicionaPaletaModal from "components/AdicionaPaletaModal/adicionaPaletaModal"
 
 function Home() {
   return (
@@ -11,6 +12,7 @@ function Home() {
     <NavBar/>
       <div className="Home__container">
         <PaletaLista />
+        <AdicionaPaletaModal/>
       </div>
     </div>
   );

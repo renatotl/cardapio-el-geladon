@@ -2840,4 +2840,122 @@ E por último, mas não menos importante, a exibição do resultado no navegador
 
 
 
+Adição de itens ao cardápio
+Seguindo o processo de integração das aplicações, iremos preparar a tela que irá solicitar a adição de uma paleta ao sistema.
+Criação da tela de adição
+
+
+Iniciaremos com a inclusão de um novo botão no componente Navbar que fará a chamada de um modal para a inclusão de uma nova paleta no sistema.
+Comece salvando o ícone de adição em src/assets/icons e importe-o em Navbar.jsx:
+
+import paleta from "assets/icons/paleta.svg"
+
+
+Em seguida vamos adicionar ao layout a estrutura que comportará o botão:
+
+
+...
+{/* NOVO TRECHO */}
+
+function Navbar({ createPaleta }) {
+
+{/* FIM DO NOVO TRECHO */}
+
+    return (
+        <div className="Header">
+            <div className="row">
+                <div className="Header__logo Logo">
+                    <img src={logo} width="70px" alt="Logo El Geladon" className="Logo__icone" />
+                    <span className="Logo__titulo"> El Geladon </span>
+                </div>
+                <div className="Header__opcoes Opcoes">
+
+                    {/* NOVO TRECHO */}
+
+                    <button type="button" className="Opcoes__paleta Paleta" onClick={() => createPaleta() }>
+                        <img src={paleta} width="40px" className="Paleta__icone" alt="Adiconar paleta" />
+                    </button>
+
+                    {/* FIM DO NOVO TRECHO */}
+
+                    <div className="Opcoes__sacola Sacola">
+                        <img src={sacola} width="40px" className="Sacola__icone" alt="Sacola de compras" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+...
+
+
+
+Sua aplicação no navegador terá a seguinte aparência:
+
+
+Sabemos que é necessário adicionar a estilização. Segue os exemplos em Navbar.css:
+
+...
+.Opcoes {
+  display: flex;
+}
+
+.Paleta {
+  background: none;
+  border: none;
+}
+
+.Paleta__icone {
+  cursor: pointer;
+}
+...
+
+
+Adicione também os trechos que realizarão a customização do layout baseada na largura da janela do navegador, conhecidos como media queries:
+
+...
+@media (max-width: 840px) {
+  .Header {
+    max-width: 320px;
+  }
+
+  {/* NOVO TRECHO */}
+
+  .row {
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+  }
+
+  {/* FIM DO NOVO TRECHO */}
+}
+
+@media (max-width: 400px) {
+  .Header {
+    max-width: 250px;
+  }
+
+  .row {
+    column-gap: 20px;
+  }
+
+  {/* NOVO TRECHO */}
+
+  .Logo {
+    width: 100%;
+  }
+
+  {/* FIM DO NOVO TRECHO */}
+
+  .Logo__titulo {
+    font-size: 1.5em;
+  }
+}
+...
+
+Após estas adições obteremos o seguinte resultado:
+
+
+Agora é o momento de criar um componente para adicionar o formulário que obterá as informações para chamar o endpoint de criação/inserção de paleta no sistema. Será chamado AdicionaPaletaModal, criado em src/components, que fará o reuso do componente Modal semelhante ao PaletaDetalhesModal
+
 
