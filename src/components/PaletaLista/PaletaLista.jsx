@@ -13,7 +13,7 @@ import PaletaDetalhesModal from "components/PaletaDetalhesModal/PaletaDetalhesMo
 import {PaletaService} from "Services/PaletaService"
 
 // é aqui que vamos renderizar na tela a nossa lista mockada
-function PaletaLista() {
+function PaletaLista({ paletaCriada }) {
 
   //montamos este code depois que removemos os dados mocados
 
@@ -62,6 +62,17 @@ const getPaletaById = async (paletaId) => {
   const response = await PaletaService.getById(paletaId);
   setPaletaModal(response);
 };
+
+
+const adicionaPaletaNaLista = (paleta) => {
+  const lista = [...paletas, paleta];
+  setPaletas(lista);
+};
+
+useEffect(() => {
+  if (paletaCriada) adicionaPaletaNaLista(paletaCriada);
+}, [paletaCriada]);
+
 
 
 //USEEFFECT ele tem 2 parametros o primeiro é uma função e o segundo uma array

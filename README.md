@@ -2958,4 +2958,633 @@ Após estas adições obteremos o seguinte resultado:
 
 Agora é o momento de criar um componente para adicionar o formulário que obterá as informações para chamar o endpoint de criação/inserção de paleta no sistema. Será chamado AdicionaPaletaModal, criado em src/components, que fará o reuso do componente Modal semelhante ao PaletaDetalhesModal
 
+import { useState } from "react";
+import Modal from "components/Modal/Modal";
+​
+function AdicionaPaletaModal({ closeModal }) {
+    const form = {
+        preco: "",
+        sabor: "",
+        recheio: "",
+        descricao: "",
+        foto: "",
+    };
+​
+    const [state, setState] = useState(form);
+​
+    const handleChange = (e, name) => {
+        setState({ ...state, [name]: e.target.value, });
+    };
+​
+    return (
+        <Modal closeModal={closeModal}>
+            <div className="AdicionaPaletaModal">
+                <form autocomplete="off">
+                    <h2> Adicionar ao Cardápio </h2>
+                    <div>
+                        <label className="AdicionaPaletaModal__text" htmlFor="preco"> Preco: </label>
+                        <input
+                            id="preco"
+                            placeholder="10,00"
+                            type="text"
+                            value={state.preco}
+                            onChange={(e) => handleChange(e, "preco")} />
+                    </div>
+                    <div>
+                        <label className="AdicionaPaletaModal__text" htmlFor="sabor"> Sabor: </label>
+                        <input
+                            id="sabor"
+                            placeholder="Chocolate"
+                            type="text"
+                            value={state.sabor}
+                            onChange={(e) => handleChange(e, "sabor")} />
+                    </div>
+                    <div>
+                        <label className="AdicionaPaletaModal__text" htmlFor="recheio"> Recheio: </label>
+                        <input
+                            id="recheio"
+                            placeholder="Banana"
+                            type="text"
+                            value={state.recheio}
+                            onChange={(e) => handleChange(e, "recheio")} />
+                    </div>
+                    <div>
+                        <label className="AdicionaPaletaModal__text" htmlFor="descricao"> Descricao: </label>
+                        <input
+                            id="descricao"
+                            placeholder="Detalhe o produto"
+                            type="text"
+                            value={state.descricao}
+                            onChange={(e) => handleChange(e, "descricao")} />
+                    </div>
+                    <div>
+                        <label className="AdicionaPaletaModal__text  AdicionaPaletaModal__foto-label" htmlFor="foto" >
+                            {!state.foto.length ? "Selecionar Imagem" : state.foto}
+                        </label>
+                        <input
+                            className=" AdicionaPaletaModal__foto"
+                            id="foto"
+                            type="file"
+                            accept="image/png, image/gif, image/jpeg"
+                            value={state.foto}
+                            onChange={(e) => handleChange(e, "foto")} />
+                    </div>
+​
+                    <input
+                        className="AdicionaPaletaModal__enviar"
+                        type="submit"
+                        value="Enviar" />
+                </form>
+            </div>
+        </Modal>
+    );
+}
+​
+export default AdicionaPaletaModal;
+Note que utilizamos todos os recursos ensinados nas aulas anteriores. Aplicando a atribuição de valor a partir de um objeto state aos inputs do formulário e ao ocorrer mudanças em cada input é reatribuído o novo valor obtido pelo input ao objeto state.
+Repare também que como estamos usando a sintaxe JSX alguns atributos têm seu nome de chave alterado, que é o caso do htmlFor conhecido como atributo for no HTML convencional.
+Para obter uma visualização de como está a estrutura, é necessário importar o componente em Home.jsx:
+...
+import AdicionaPaletaModal from "components/AdicionaPaletaModal/AdicionaPaletaModal";
+...
+Em seguida adicione o componente AdicionaPaletaModal abaixo do uso de PaletaLista:
+...
+<div className="Home__container">
+    <PaletaLista />
+​
+    {/* NOVO TRECHO */}
+​
+    <AdicionaPaletaModal />
+​
+    {/* FIM DO NOVO TRECHO */}
+</div>
+...
+Observe o componente antes de sua estilização:
+formulário estruturado sem estilização
+Adicione o arquivo de estilos AdicionaPaletaModal.css em src/components/AdicionaPaletaModal:
+.AdicionaPaletaModal {
+  font-family: "Exo";
+  border-radius: 10px;
+  max-height: 350px;
+  box-sizing: border-box;
+  width: 325px;
+  display: flex;
+  position: relative;
+  transform: translateY(-15px);
+  margin-right: -45px;
+}
+​
+.AdicionaPaletaModal form div {
+  display: flex;
+  margin: 15px 0;
+}
+​
+.AdicionaPaletaModal form {
+  width: 100%;
+}
+​
+.AdicionaPaletaModal div input {
+  border: none;
+  background: rgba(255, 255, 255, 0.3);
+  width: 100%;
+  margin-left: 15px;
+  border-radius: 5px;
+  height: 20px;
+  padding: 2px 10px;
+}
+​
+.AdicionaPaletaModal__text {
+  font-size: 1em;
+  line-height: 100%;
+}
+​
+.AdicionaPaletaModal__foto-label {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  color: darkviolet;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+​
+.AdicionaPaletaModal__foto {
+  display: none;
+}
+​
+.AdicionaPaletaModal__enviar {
+  background-color: darkviolet;
+  cursor: pointer;
+  color: white;
+  width: 100%;
+  border-radius: 5px;
+  border: none;
+  padding: 5px;
+}
+​
+.AdicionaPaletaModal__enviar:disabled {
+  background-color: gray;
+}
+Agora devemos importar o arquivo AdicionaPaletaModal.css em AdicionaPaletaModal.jsx:
+...
+import "./AdicionaPaletaModal.css";
+...
+E então poderemos visualizar como ficou:
+formulário estruturado com estilização
+Parece que a estrutura está pronta, mas ao tentar fechar o modal vemos a seguinte tela de erro:
+
+
+É necessário gerenciar o estado de exibição do modal.
+
+
+Para que seja possível, devemos fazer algumas edições em Home.jsx:
+import "./Home.css";
+import PaletaLista from "components/PaletaLista/PaletaLista";
+import AdicionaPaletaModal from "components/AdicionaPaletaModal/AdicionaPaletaModal";
+import Navbar from "components/Navbar/Navbar";
+​
+{ /* NOVO TRECHO */ }
+​
+import { useState } from "react";
+​
+{ /* FIM DO NOVO TRECHO */ }
+​
+function Home() {
+​
+    { /* NOVO TRECHO */ }
+​
+    const [canShowAdicionaPaletaModal, setCanShowAdicionaPaletaModal] = useState(false);
+​
+    { /* FIM DO NOVO TRECHO */ }
+​
+    return (
+        <div className="Home">
+​
+            {/* NOVO TRECHO */}
+​
+            <Navbar createPaleta={() => setCanShowAdicionaPaletaModal(true)} />
+​
+            {/* FIM DO NOVO TRECHO */}
+​
+            <div className="Home__container">
+                <PaletaLista />
+​
+                {/* NOVO TRECHO */}
+​
+                {
+                    canShowAdicionaPaletaModal &&
+                    (<AdicionaPaletaModal closeModal={() => setCanShowAdicionaPaletaModal(false)} />)
+                }
+​
+                {/* FIM DO NOVO TRECHO */}
+​
+            </div>
+        </div>
+    );
+}
+​
+export default Home;
+Agora podemos testar e comprovar sua funcionalidade:
+modal com gerenciamento de exibição funcionando
+Para evitar erros vamos incluir o atributo required em todos os inputs, exceto o input de "recheio", que é não obrigatório, e o de realizar o envio em AdicionaPaletaModal.jsx.
+Vamos preparar as funções para realizar o gerenciamento de estado para a habilitação do botão de envio do formulário.
+Iremos usar o hook de useState para gerenciar o estado e refletir as mudanças, como também criar uma função que será chamada quando houver mudanças no state de dados do formulário.
+Segue as sugestões de implementação em AdicionaPaletaModal.jsx:
+...
+const [canDisable, setCanDisable] = useState(true);
+​
+const canDisableSendButton = () => {
+    const response = !Boolean(
+        state.descricao.length
+        && state.foto.length
+        && state.sabor.length
+        && state.preco.length
+    );
+​
+    setCanDisable(response);
+};
+...
+Repare que para habilitar o botão precisamos que os campos que contêm o atributo required estejam preenchidos.
+Agora que já podemos realizar o gerenciamento de estado é necessário observar quando há mudanças no formulário e realizar a chamada da função canDisableSendButton. O hook useEffect fará isso perfeitamente, pois já identifica essas mudanças.
+Lembre-se de realizar a importação do useEffect junto a importação do useState antes de usá-lo em AdicionaPaletaModal.jsx:
+...
+import { useState, useEffect } from "react";
+...
+Após isto implemente a chamada da função em AdicionaPaletaModal.jsx:
+...
+useEffect(() => {
+    canDisableSendButton();
+})
+...
+Em seguida precisamos substituir o input de envio do formulário por um elemento button em AdicionaPaletaModal.jsx para que o HTML compreenda, simule seu comportamento como um botão. Vejamos o antes e o depois:
+Antes:
+...
+<input className="AdicionaPaletaModal__enviar" type="submit" value="Enviar" />
+...
+Depois:
+...
+<button
+    className="AdicionaPaletaModal__enviar"
+    type="button"
+    disabled="{canDisable}" >
+    Enviar
+</button>
+...
+Note que já associamos a propriedade disable ao retorno do useState canDisable.
+Nossa aplicação terá o seguinte comportamento:
+formulário com gerenciamento de habilitação para envio
+Com a estrutura e estilos prontos, podemos prosseguir com o processo de integração do sistema.
+Integração com endpoint de criação
+Como já deixamos anteriormente os endpoints adicionados na aplicação, utilizaremos os métodos prontos no arquivo PaletaService.js, se atentando somente a adição dos headers e de um mapeamento entre os objetos devolvidos pelo frontend e o envio para a API, como também seu retorno.
+Iremos começar pela edição do método create no service PaletaService.js, ficando da seguinte maneira:
+...
+create: (paleta) => fetch(Api.createPaleta(), { method: "POST", body: JSON.stringify(paleta), mode: "cors", headers: {
+    "Content-Type": "application/json",
+} }).then(parseTransformItem),
+...
+Agora podemos realizar a importação do service PaletaService.js em AdicionaPaletaModal.jsx:
+...
+import { PaletaService } from "services/PaletaService";
+...
+Para integrar os sistemas, precisamos enviar os dados do formulário para o endpoint de criação através do service chamando o método create.
+Comece com a criação de uma função assíncrona chamada createPaleta que fará o mapeamento e validação dos dados necessários a serem enviados para a API, a implementação da integração e emissão de fechamento do modal em AdicionaPaletaModal.jsx:
+...
+const createPaleta = async () => {
+    const renomeiaCaminhoFoto = (fotoPath) => fotoPath.split('\\').pop();
+​
+    const { sabor, recheio, descricao, preco, foto } = state;
+​
+    const titulo = sabor + (recheio && ' com ' + recheio);
+​
+    const paleta = {
+        sabor: titulo,
+        descricao,
+        preco,
+        foto: `assets/images/${renomeiaCaminhoFoto(foto)}`
+    }
+​
+    const response = await PaletaService.create(paleta);
+    closeModal();
+}
+...
+Para explicarmos os conceitos aqui utilizados:
+Observe que criamos uma função dentro desta chamada renomeiaCaminhoFoto que para o nosso caso, a título de exemplo, simula o processo de armazenamento local dos arquivos e pega somente o nome da imagem e faz a junção deste ao caminho/nome da pasta indicada onde estão armazenadas as demais fotos.
+Também há a lógica que constrói o título baseado se há ou não recheio, caso só haja sabor somente ele será adicionado ao título, mas caso possua recheio a validação será true e em seguida concatenará a preposição com ao sabor, juntando o recheio ao título.
+Esta lógica é mostrada no seguinte trecho:
+...
+const titulo = sabor + (recheio && ' com ' + recheio);
+...
+Há o processo de desconstrução de um objeto, onde, em vez de pegarmos o caminho completo da informação utilizamos somente a propriedade propriamente dita.
+Segue como exemplo que para pegarmos a propriedade descricao iríamos seguir com state.descricao, mas ao desconstruirmos em const { descricao } = state obteremos o mesmo resultado, porém desta vez somente utilizando a constante descricao.
+Nesta função ocorre a construção do objeto que será enviado ao backend, chamamos de paleta e ele recebe uma estrutura específica com sabor, descricao e preco, foto. Em seguida há o envio do objeto paleta ao service que fará o envio como método POST para a API indicando a criação/inserção/envio de dados ao sistema.
+Este parágrafo descreve o seguinte trecho:
+...
+const response = await PaletaService.create(paleta);
+...
+Ao fim da espera pelo retorno da criação/inserção desta paleta à aplicação necessitamos fechar o modal, então emitimos o seu fechamento realizando a chamada de closeModal();.
+Já que criamos esta função, precisamos chamá-la, não é mesmo?
+Adicione sua chamada via evento de click no botão que faz o envio de dados do formulário:
+...
+<button
+    className="AdicionaPaletaModal__enviar"
+    type="button"
+    disabled="{canDisable}"
+    onClick="{createPaleta}" >
+  Enviar
+</button>
+...
+Com isto teremos o seguinte comportamento:
+envio de dados funcionando com refresh
+A integração ocorre, porém ainda é necessário realizar o recarregamento da página, mesmo com a integração acontecendo.
+Precisamos preparar um evento que será disparado ao receber o retorno da adição de uma paleta no sistema. Vamos chamá-lo de onCreatePaleta e adicioná-lo na assinatura de método do componente AdicionaPaletaModal:
+...
+function AdicionaPaletaModal({ closeModal, onCreatePaleta }) {
+...
+Em seguida adicione a chamada desta propriedade em AdicionaPaletaModal.jsx após o recebimento da resposta retornada pelo endpoint:
+...
+const response = await PaletaService.create(paleta);
+​
+{/* NOVO TRECHO */}
+​
+onCreatePaleta(response);
+​
+{/* FIM DO NOVO TRECHO */}
+​
+closeModal();
+...
+Mas somente isto não basta, precisamos informar aos demais componentes essas mudanças.
+Um nível acima será recebido no componente Home, então vamos precisar de um hook de useState para atualizar os dados na tela.
+Adicione no escopo do componente em Home.jsx:
+...
+const [paletaParaAdicionar, setPaletaParaAdicionar] = useState();
+...
+Agora podemos implementar a passagem e atualização desse evento no mesmo arquivo:
+...
+{
+    canShowAdicionaPaletaModal &&
+    <AdicionaPaletaModal
+        closeModal={() => setCanShowAdicionaPaletaModal(false)}
+        onCreatePaleta={(paleta) => setPaletaParaAdicionar(paleta)}
+        />
+}
+...
+Antes de passar este retorno para o componente PaletaLista, precisamos prepará-lo para recebê-lo como evento em PaletaLista.jsx:
+import "./PaletaLista.css";
+import { useState, useEffect } from "react";
+import PaletaListaItem from "components/PaletaListaItem/PaletaListaItem";
+import { PaletaService } from "services/PaletaService";
+import PaletaDetalhesModal from "components/PaletaDetalhesModal/PaletaDetalhesModal";
+​
+{ /* NOVO TRECHO */ }
+​
+function PaletaLista({ paletaCriada }) {
+​
+{ /* FIM DO NOVO TRECHO */ }
+​
+    const [paletas, setPaletas] = useState([]);
+​
+    const [paletaSelecionada, setPaletaSelecionada] = useState({});
+​
+    const [paletaModal, setPaletaModal] = useState(false);
+​
+    const adicionarItem = (paletaIndex) => {
+        const paleta = {
+            [paletaIndex]: (paletaSelecionada[paletaIndex] || 0) + 1,
+        };
+​
+        setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+    };
+​
+    const removerItem = (paletaIndex) => {
+        const paleta = {
+            [paletaIndex]: Number(paletaSelecionada[paletaIndex] || 0) - 1,
+        };
+​
+        setPaletaSelecionada({ ...paletaSelecionada, ...paleta });
+    };
+​
+    const getLista = async () => {
+        const response = await PaletaService.getLista();
+        setPaletas(response);
+    };
+​
+    const getPaletaById = async (paletaId) => {
+        const response = await PaletaService.getById(paletaId);
+        setPaletaModal(response);
+    };
+​
+    { /* NOVO TRECHO */ }
+​
+    const adicionaPaletaNaLista = (paleta) => {
+        const lista = [...paletas, paleta];
+        setPaletas(lista);
+    };
+​
+    useEffect(() => {
+        if (paletaCriada) adicionaPaletaNaLista(paletaCriada);
+    }, [paletaCriada]);
+​
+    { /* FIM DO NOVO TRECHO */ }
+​
+    useEffect(() => {
+        getLista();
+    }, []);
+​
+    return (
+        <div className="PaletaLista">
+            {
+                paletas.map((paleta, index) => (
+                    <PaletaListaItem
+                        key={`PaletaListaItem-${index}`}
+                        paleta={paleta}
+                        quantidadeSelecionada={paletaSelecionada[index]}
+                        index={index}
+                        onAdd={(index) => adicionarItem(index)}
+                        onRemove={(index) => removerItem(index)}
+                        clickItem={(paletaId) => getPaletaById(paletaId)} />
+                ))
+            }
+            {
+                paletaModal && (
+                <PaletaDetalhesModal
+                    paleta={paletaModal}
+                    closeModal={() => setPaletaModal(false)} />
+                )
+            }
+        </div>
+    );
+}
+​
+export default PaletaLista;
+Agora, toda vez que uma paleta for criada poderemos adicioná-la à lista de forma simples, gerenciando através dos hooks que já aplicamos diversas vezes.
+Falta somente realizar a passagem adicionando em Home.jsx a paleta propriamente dita, passando no atributo paletaCriada o hook paletaParaAdicionar:
+import "./Home.css";
+import PaletaLista from "components/PaletaLista/PaletaLista";
+import AdicionaPaletaModal from "components/AdicionaPaletaModal/AdicionaPaletaModal";
+import Navbar from "components/Navbar/Navbar";
+import { useState } from "react";
+​
+function Home() {
+    const [canShowAdicionaPaletaModal, setCanShowAdicionaPaletaModal] = useState(false);
+    const [paletaParaAdicionar, setPaletaParaAdicionar] = useState();
+​
+    return (
+        <div className="Home">
+            <Navbar createPaleta={() => setCanShowAdicionaPaletaModal(true)} />
+            <div className="Home__container">
+​
+                {/* NOVO TRECHO */}
+​
+                <PaletaLista paletaCriada={paletaParaAdicionar} />
+                {
+                    canShowAdicionaPaletaModal && (
+                    <AdicionaPaletaModal
+                        closeModal={() => setCanShowAdicionaPaletaModal(false)}
+                        onCreatePaleta={(paleta) => setPaletaParaAdicionar(paleta)} />
+                    )
+                }
+​
+                {/* FIM DO NOVO TRECHO */}
+​
+            </div>
+        </div>
+    );
+}
+​
+export default Home;
+Para evitarmos desencontros, assim ficou o componente AdicionaPaletaModal:
+import "./AdicionaPaletaModal.css";
+import { useState, useEffect } from "react";
+import Modal from "components/Modal/Modal";
+import { PaletaService } from "services/PaletaService";
+​
+function AdicionaPaletaModal({ closeModal, onCreatePaleta }) {
+    const form = {
+        preco: "",
+        sabor: "",
+        recheio: "",
+        descricao: "",
+        foto: "",
+    };
+​
+    const [state, setState] = useState(form);
+    const [canDisable, setCanDisable] = useState(true);
+​
+    const canDisableSendButton = () => {
+        const response = !Boolean(
+            state.descricao.length &&
+            state.foto.length &&
+            state.sabor.length &&
+            state.preco.length
+        );
+​
+        setCanDisable(response);
+    };
+​
+    const handleChange = (e, name) => {
+        setState({ ...state, [name]: e.target.value });
+    };
+​
+    useEffect(() => {
+        canDisableSendButton();
+    });
+​
+    const createPaleta = async () => {
+        const renomeiaCaminhoFoto = (fotoPath) => fotoPath.split("\\").pop();
+​
+        const { sabor, recheio, descricao, preco, foto } = state;
+​
+        const titulo = sabor + (recheio && " com " + recheio);
+​
+        const paleta = {
+            sabor: titulo,
+            descricao,
+            preco,
+            foto: `assets/images/${renomeiaCaminhoFoto(foto)}`,
+        };
+​
+        const response = await PaletaService.create(paleta);
+        onCreatePaleta(response);
+        closeModal();
+    };
+​
+    return (
+        <Modal closeModal={closeModal}>
+            <div className="AdicionaPaletaModal">
+                <form autocomplete="off">
+                    <h2> Adicionar ao Cardápio </h2>
+                    <div>
+                        <label className="AdicionaPaletaModal__text" htmlFor="preco"> Preco: </label>
+                        <input
+                            id="preco"
+                            placeholder="10,00"
+                            type="text"
+                            value={state.preco}
+                            required
+                            onChange={(e) => handleChange(e, "preco")} />
+                    </div>
+                    <div>
+                        <label className="AdicionaPaletaModal__text" htmlFor="sabor"> Sabor: </label>
+                        <input
+                            id="sabor"
+                            placeholder="Chocolate"
+                            type="text"
+                            value={state.sabor}
+                            required
+                            onChange={(e) => handleChange(e, "sabor")} />
+                    </div>
+                    <div>
+                        <label className="AdicionaPaletaModal__text" htmlFor="recheio"> Recheio: </label>
+                        <input
+                            id="recheio"
+                            placeholder="Banana"
+                            type="text"
+                            value={state.recheio}
+                            onChange={(e) => handleChange(e, "recheio")} />
+                    </div>
+                    <div>
+                        <label className="AdicionaPaletaModal__text" htmlFor="descricao"> Descricao: </label>
+                        <input
+                            id="descricao"
+                            placeholder="Detalhe o produto"
+                            type="text"
+                            value={state.descricao}
+                            required
+                            onChange={(e) => handleChange(e, "descricao")} />
+                    </div>
+                    <div>
+                        <label className="AdicionaPaletaModal__text  AdicionaPaletaModal__foto-label" htmlFor="foto" >
+                            {!state.foto.length ? "Selecionar Imagem" : state.foto}
+                        </label>
+                        <input
+                            className=" AdicionaPaletaModal__foto"
+                            id="foto"
+                            type="file"
+                            accept="image/png, image/gif, image/jpeg"
+                            value={state.foto}
+                            required
+                            onChange={(e) => handleChange(e, "foto")} />
+                    </div>
+​
+                    <button
+                        className="AdicionaPaletaModal__enviar"
+                        type="button"
+                        disabled={canDisable}
+                        onClick={createPaleta} >
+                        Enviar
+                    </button>
+                </form>
+            </div>
+        </Modal>
+    );
+}
+​
+export default AdicionaPaletaModal;
+Com esta parte realizada, podemos observar o comportamento final:
+envio de dados funcionando normalmente
+Próximos passos
+Adição implementada, poderemos prosseguir com a atualização de dados e deleção de itens na próxima aula, como também correções finais do projeto. Aplique e absorva o conhecimento passado se preparando para a próxima aula.
+
+
 
